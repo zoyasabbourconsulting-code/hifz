@@ -78,6 +78,9 @@ select:disabled{opacity:.5}
 .live{display:flex;align-items:center;gap:8px;font-weight:600}
 .pulse{width:12px;height:12px;border-radius:50%;background:var(--bad);animation:pl 1s infinite}
 @keyframes pl{50%{opacity:.25}}
+.curA{background:var(--hl);border-radius:10px;padding:0 8px}
+.resA{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
+details summary{cursor:pointer}
 .hintbox{background:var(--hl);border-radius:10px;padding:6px 10px}
 .hintbox b{font-family:var(--quran);font-size:1.35rem;font-weight:400;color:var(--fg)}
 .player{
@@ -223,7 +226,7 @@ function wake(on){
   }catch(e){}
 }
 document.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='visible'&&(state==='playing'||(T&&T.listen)))wake(true);
+  if(document.visibilityState==='visible'&&(state==='playing'||isListening()))wake(true);
 });
 
 var cur=null; /* {num,name,count,basmala,ayahs:[{n,i,t}]} */
@@ -384,7 +387,7 @@ function stopAll(){
   queue=[];qi=0;$('#seek').value=0;
   document.querySelectorAll('.ay.on').forEach(function(e){e.classList.remove('on')});
   setStatus('اختار المقطع واضغط تشغيل');
-  if(!(T&&T.listen))wake(false);
+  if(!isListening())wake(false);
 }
 function playRange(){
   if(!cur)return;
@@ -417,6 +420,7 @@ function playOne(i){
 }
 
 /* ---------- Recitation check ---------- */
+/* One session covers whatever the user picked (one ayah, a few, or the whole surah) recited in one go. */
 var T=null,hintTimer=null;
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
@@ -428,17 +432,19 @@ function lev(a,b){
     d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
   return d[m][n];
 }
-function sim(a,b){if(!a||!b)return 0;return 1-lev(a,b)/Math.max(a.length,b.length)}
+function sim(a,b){if(!a||!b)return 0;if(a===b)return 1;return 1-lev(a,b)/Math.max(a.length,b.length)}
 function spoken(t){return t.trim().split(/\s+/).map(norm).filter(Boolean)}
 /* Longest in-order fuzzy match of expected words against what was heard.
    Tolerates repeated starts, extra words and recognizer noise. 1 = heard, 0 = missed. */
 function align(exp,sp){
   var n=exp.length,m=sp.length,L=[],M=[],i,j;
-  for(i=0;i<=n;i++){L[i]=new Array(m+1).fill(0);M[i]=[]}
-  for(i=0;i<n;i++)for(j=0;j<m;j++)M[i][j]=exp[i]&&sim(exp[i],sp[j])>=0.7;
+  for(i=0;i<=n;i++){L[i]=new Int32Array(m+1);M[i]=new Uint8Array(m)}
+  for(i=0;i<n;i++)if(exp[i])for(j=0;j<m;j++)M[i][j]=sim(exp[i],sp[j])>=0.7?1:0;
   for(i=n-1;i>=0;i--)for(j=m-1;j>=0;j--){
     if(!exp[i]){L[i][j]=L[i+1][j];continue}
-    L[i][j]=Math.max(L[i+1][j],L[i][j+1],M[i][j]?1+L[i+1][j+1]:0);
+    var best=L[i+1][j]>L[i][j+1]?L[i+1][j]:L[i][j+1];
+    if(M[i][j]&&1+L[i+1][j+1]>best)best=1+L[i+1][j+1];
+    L[i][j]=best;
   }
   var res=[];i=0;j=0;
   while(i<n){
@@ -450,18 +456,20 @@ function align(exp,sp){
   }
   return res;
 }
+function lastOkOf(res,exp){var k=-1;for(var q=0;q<res.length;q++)if(res[q]&&exp[q])k=q;return k}
+function allOk(res){for(var q=0;q<res.length;q++)if(res[q]!==1)return false;return true}
 
-function curI(){return T.list[T.p]}
+function isListening(){return !!(T&&T.R&&T.R.listen)}
 function killListen(){
   clearInterval(hintTimer);hintTimer=null;
-  if(T&&T.listen){
-    T.listen=false;T.token++;
-    var r=T.rec;T.rec=null;try{if(r)r.abort()}catch(e){}
+  if(isListening()){
+    var R=T.R;R.listen=false;R.token++;
+    var r=R.rec;R.rec=null;try{if(r)r.abort()}catch(e){}
   }
   if(state!=='playing')wake(false);
 }
 function resetT(){killListen();T=null;renderTest()}
-function clearAyahState(){T.shown=0;T.rev=false;T.listen=false;T.res=null;T.msg='';T.hint='';T.heard='';T.live=[];T.rec=null}
+
 function startTest(mode){
   if(!cur)return;
   stopAll();killListen();
@@ -470,163 +478,212 @@ function startTest(mode){
   else if(mode==='rev'){for(i=1;i<=cur.count;i++)if(stat(cur.num,i)==='rev')list.push(i)}
   else for(i=rangeFrom();i<=rangeTo();i++)list.push(i);
   if(!list.length)return;
-  T={list:list,p:0,final:{},retried:{},token:0};
-  clearAyahState();
+  /* Flat list of every word in the selection, tagged with its ayah */
+  var E=[];
+  list.forEach(function(ai){ayah(ai).t.split(' ').forEach(function(w,q){E.push({i:ai,q:q,w:w,e:norm(w)})})});
+  T={mode:mode,list:list,E:E,exp:E.map(function(x){return x.e}),R:null,res:null,grades:null,msg:'',done:null,shown:0,peek:false};
   renderTest();
 }
+
+/* ---- speech recognition, restarted across Android's short-silence cut-offs ---- */
 function startListen(){
-  if(!SR){T.msg='المتصفح ده مش بيدعم التعرف على الصوت. افتح الملف من Chrome على أندرويد.';renderTest();return}
+  if(!SR){T.msg='المتصفح ده مش بيدعم التعرف على الصوت. افتح اللينك من Chrome على أندرويد.';renderTest();return}
   stopAll();wake(true);
-  var words=ayah(curI()).t.split(' ');
-  T.words=words;T.exp=words.map(norm);
-  T.msg='';T.hint='';T.hintN=1;T.heard='';T.acc='';T.res=null;
-  T.live=align(T.exp,[]);
-  T.listen=true;T.fatal=false;T.t0=Date.now();T.last=Date.now();
-  T.token++;
-  listenSession(T.token);
+  var tok=(T.R?T.R.token:0)+1;
+  T.R={token:tok,listen:true,fatal:false,heard:'',acc:'',hint:'',hintN:1,t0:Date.now(),last:Date.now(),rec:null,
+       live:align(T.exp,[])};
+  T.msg='';T.res=null;T.grades=null;T.peek=false;
+  session(T.R,tok);
   clearInterval(hintTimer);
   hintTimer=setInterval(function(){
-    if(!T||!T.listen)return;
-    if(Date.now()-T.last>5000){
-      var idx=[];
-      for(var q=0;q<T.exp.length&&idx.length<T.hintN;q++){
-        if(T.exp[q]&&T.live[q]!==1){
-          if(!idx.length||q===idx[idx.length-1]+1||!T.exp[q-1])idx.push(q);else break;
-        }else if(idx.length&&T.exp[q])break;
-      }
+    var R=T&&T.R;if(!R||!R.listen)return;
+    if(Date.now()-R.last>5000){
+      var from=lastOkOf(R.live,T.exp)+1,idx=[];
+      for(var q=from;q<T.exp.length&&idx.length<R.hintN;q++)if(T.exp[q])idx.push(q);
       if(idx.length){
-        T.hint=idx.map(function(q){return T.words[q]}).join(' ');
-        T.hintN=Math.min(3,T.hintN+1);T.last=Date.now();renderTest();
+        R.hint=idx.map(function(q){return T.E[q].w}).join(' ');
+        R.hintAyah=T.E[idx[0]].i;
+        R.hintN=Math.min(3,R.hintN+1);R.last=Date.now();renderTest();
       }
     }
   },1000);
   renderTest();
 }
-/* Android Chrome ends recognition after a short silence, so restart it until the ayah is done,
-   the user taps "انتهيت", or there has been no speech for 20 seconds. */
-function listenSession(tok){
+function session(R,tok){
   var me=T,rec;
-  try{rec=new SR()}catch(e){T.fatal=true;T.msg='تعذر تشغيل التعرف على الصوت.';finishListen();return}
+  try{rec=new SR()}catch(e){R.fatal=true;T.msg='تعذر تشغيل التعرف على الصوت.';finishListen();return}
   rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=1;
-  T.rec=rec;
+  R.rec=rec;
+  function mine(){return T===me&&T.R===R&&R.token===tok}
   rec.onresult=function(ev){
-    if(T!==me||T.token!==tok||!T.listen)return;
+    if(!mine()||!R.listen)return;
+    /* Some Android builds repeat the whole text so far in every result: keep the longest prefix chain */
     var s='';
-    for(var k=0;k<ev.results.length;k++)s+=ev.results[k][0].transcript+' ';
-    T.heard=(T.acc+' '+s).trim();T.last=Date.now();T.hint='';T.hintN=1;
-    T.live=align(T.exp,spoken(T.heard));
-    if(T.live.every(function(x){return x===1}))finishListen();else renderTest();
+    for(var k=0;k<ev.results.length;k++){
+      var t=ev.results[k][0].transcript.trim();if(!t)continue;
+      if(s&&t.indexOf(s)===0)s=t;else if(s.indexOf(t)===-1)s=(s+' '+t).trim();
+    }
+    R.heard=(R.acc+' '+s).trim();R.last=Date.now();R.hint='';R.hintN=1;
+    R.live=align(T.exp,spoken(R.heard));
+    if(allOk(R.live))finishListen();else renderTest();
   };
   rec.onerror=function(ev){
-    if(T!==me||T.token!==tok)return;
-    var fatal={'not-allowed':'الميكروفون مش مسموح. اسمح للمتصفح باستخدامه وجرّب تاني.',
-      'service-not-allowed':'الميكروفون مش مسموح. اسمح للمتصفح باستخدامه وجرّب تاني.',
+    if(!mine())return;
+    var fatal={'not-allowed':'الميكروفون مش مسموح. اضغط على القفل جنب اللينك في Chrome واسمح بالميكروفون، وجرّب تاني.',
+      'service-not-allowed':'الميكروفون مش مسموح. اضغط على القفل جنب اللينك في Chrome واسمح بالميكروفون، وجرّب تاني.',
       'audio-capture':'مفيش ميكروفون شغال على الموبايل.',
       'network':'التعرف على الصوت محتاج إنترنت.',
       'language-not-supported':'التعرف على الصوت بالعربي مش متاح على الجهاز ده.'};
-    if(fatal[ev.error]){T.fatal=true;T.msg=fatal[ev.error]}
+    if(fatal[ev.error]){R.fatal=true;T.msg=fatal[ev.error]}
   };
   rec.onend=function(){
-    if(T!==me||T.token!==tok)return;
-    T.rec=null;
-    if(!T.listen)return;
-    T.acc=T.heard;
+    if(!mine())return;
+    R.rec=null;
+    if(!R.listen)return;
+    R.acc=R.heard;
     var now=Date.now();
-    if(!T.fatal&&now-T.t0<180000&&now-T.last<20000){
-      setTimeout(function(){if(T===me&&T.token===tok&&T.listen)listenSession(tok)},150);
+    if(!R.fatal&&now-R.t0<1800000&&now-R.last<25000){
+      setTimeout(function(){if(mine()&&R.listen)session(R,tok)},150);
     }else finishListen();
   };
-  try{rec.start()}catch(e){T.fatal=true;T.msg='تعذر تشغيل الميكروفون.';finishListen()}
+  try{rec.start()}catch(e){R.fatal=true;T.msg='تعذر تشغيل الميكروفون.';finishListen()}
 }
 function finishListen(){
-  if(!T||!T.listen)return;
+  var R=T&&T.R;if(!R||!R.listen)return;
   clearInterval(hintTimer);hintTimer=null;
-  T.listen=false;T.token++;
-  var r=T.rec;T.rec=null;try{if(r)r.abort()}catch(e){}
+  R.listen=false;R.token++;
+  var r=R.rec;R.rec=null;try{if(r)r.abort()}catch(e){}
   if(state!=='playing')wake(false);
-  if(!T.heard){
+  if(!R.heard){
     if(!T.msg)T.msg='ما سمعتش صوت. قرّب الموبايل من بُقك وجرّب تاني.';
-    T.res=null;
-  }else T.res=align(T.exp,spoken(T.heard));
+    T.res=null;T.R=null;
+  }else{
+    T.res=align(T.exp,spoken(R.heard));
+    T.heard=R.heard;
+    T.grades={};
+    perAyah(T.res).forEach(function(a){T.grades[a.i]=a.ok===a.n?'ok':'rev'});
+  }
   renderTest();
 }
-function wordsHtml(res,pending){
-  var lastOk=-1,q;
-  if(pending)for(q=0;q<res.length;q++)if(res[q]&&T.exp[q])lastOk=q;
-  return T.words.map(function(w,q){
-    if(!T.exp[q])return esc(w);
-    if(pending&&q>lastOk)return '<span style="color:var(--mut)">▢</span>';
-    if(pending&&!res[q])return '<span class="wmiss">▢</span>';
-    return '<span class="'+(res[q]?'wok':'wmiss')+'">'+esc(w)+'</span>';
-  }).join(' ');
+
+/* ---- rendering ---- */
+function perAyah(res){
+  var out=[],map={};
+  T.list.forEach(function(ai){var o={i:ai,ok:0,n:0,from:-1,to:-1};map[ai]=o;out.push(o)});
+  T.E.forEach(function(x,q){
+    var o=map[x.i];if(o.from<0)o.from=q;o.to=q;
+    if(x.e){o.n++;if(res[q])o.ok++}
+  });
+  return out;
 }
-function gradeRow(suggest){
-  return '<div class="row"><button class="btn ok" data-act="grade" data-v="ok">حافظها ✓'+(suggest==='ok'?' (مقترح)':'')+'</button>'
-    +'<button class="btn warn" data-act="grade" data-v="rev">محتاجة مراجعة ✗'+(suggest==='rev'?' (مقترح)':'')+'</button></div>';
+function segHtml(res,from,to,pending,lastOk){
+  var h=[];
+  for(var q=from;q<=to;q++){
+    var x=T.E[q];
+    if(!x.e){h.push(esc(x.w));continue}
+    if(pending&&q>lastOk)h.push('<span style="color:var(--mut)">▢</span>');
+    else if(pending&&!res[q])h.push('<span class="wmiss">▢</span>');
+    else h.push('<span class="'+(res[q]?'wok':'wmiss')+'">'+esc(x.w)+'</span>');
+  }
+  return h.join(' ');
+}
+function scopeText(){
+  var a=T.list[0],b=T.list[T.list.length-1];
+  var n=T.list.length,cnt=n===1?'آية واحدة':n===2?'آيتين':ar(n)+(n<=10?' آيات':' آية');
+  if(T.mode==='rev')return cnt+' محتاجة مراجعة';
+  if(T.mode==='all')return 'سورة '+cur.name+' كاملة ('+cnt+')';
+  return n===1?'آية '+ar(a):'من آية '+ar(a)+' إلى آية '+ar(b)+' ('+cnt+')';
+}
+function cueHtml(){
+  var a=T.list[0];
+  if(T.mode==='rev')return '';
+  return a>1?'<div class="small">اللي قبلها:</div><div class="cue">'+esc(ayah(a-1).t)+' <span class="num">﴿'+ar(a-1)+'﴾</span></div>'
+            :'<div class="small">أول السورة، ابدأ من غير تلميح.</div>';
 }
 function renderTest(){
   var box=$('#testBox');
   if(!cur){box.innerHTML='';return}
+
+  /* 1) choose what to recite */
   if(!T){
     var revN=countStat(cur.num,'rev');
-    box.innerHTML='<p style="margin:0">هتشوف الآية السابقة كتلميح وتقول الآية من حفظك: إما بصوتك في الميكروفون والتطبيق يقارنها كلمة كلمة، أو في سرّك وتكشفها وتقيّم نفسك.</p>'
-      +'<button class="btn pri wide" data-act="startTest" data-mode="range">سمّع المقطع (آية '+ar(rangeFrom())+' إلى '+ar(rangeTo())+')</button>'
-      +'<button class="btn wide" data-act="startTest" data-mode="all">سمّع سورة '+esc(cur.name)+' كاملة</button>'
-      +(revN?'<button class="btn warn wide" data-act="startTest" data-mode="rev">سمّع اللي محتاج مراجعة بس ('+ar(revN)+' آية)</button>':'');
+    box.innerHTML='<p style="margin:0">اختار اللي هتسمّعه، وبعدين اقراه كله على بعض في الميكروفون والتطبيق يقارنه كلمة كلمة.</p>'
+      +'<button class="btn pri wide" data-act="startTest" data-mode="range">المقطع المحدد ('+(rangeFrom()===rangeTo()?'آية '+ar(rangeFrom()):'آية '+ar(rangeFrom())+' إلى '+ar(rangeTo()))+')</button>'
+      +'<button class="btn wide" data-act="startTest" data-mode="all">سورة '+esc(cur.name)+' كاملة</button>'
+      +(revN?'<button class="btn warn wide" data-act="startTest" data-mode="rev">الآيات اللي محتاجة مراجعة بس ('+ar(revN)+')</button>':'')
+      +'<div class="small">تقدر تغيّر "من آية / إلى آية" فوق عشان تسمّع آية واحدة أو اتنين أو أكتر.</div>';
     return;
   }
-  if(T.p>=T.list.length){
-    var okN=0,weak=[];
-    for(var k in T.final){if(T.final[k]==='ok')okN++;else weak.push(+k)}
-    weak.sort(function(a,b){return a-b});
-    box.innerHTML='<p style="margin:0;font-weight:700">خلص التسميع</p>'
-      +'<p style="margin:0">حافظ: '+ar(okN)+' — محتاج مراجعة: '+ar(weak.length)+'</p>'
-      +(weak.length?'<p class="small" style="margin:0">راجع الآيات: '+weak.map(ar).join('، ')+'</p>':'')
-      +'<button class="btn pri wide" data-act="again">رجوع لاختيار التسميع</button>';
-    fillSurah();overall();
-    return;
-  }
-  var i=curI(),a=ayah(i),words=a.t.split(' ');
-  T.words=words;if(!T.exp||T.exp.length!==words.length)T.exp=words.map(norm);
-  var left=T.list.length-T.p-1;
-  var h='<div class="small">آية '+ar(i)+(left?' — فاضل '+ar(left):' — آخر آية')+(T.retried[i]&&T.list.indexOf(i)<T.p?' — إعادة':'')+'</div>';
-  if(i>1)h+='<div class="cue">'+esc(ayah(i-1).t)+' <span class="num">﴿'+ar(i-1)+'﴾</span></div>';
-  else h+='<div class="small">أول آية في السورة، ابدأ من غير تلميح.</div>';
 
-  if(T.listen){
-    h+='<div class="live"><span class="pulse"></span>بسمعك... قول الآية</div>'
-      +'<div class="txt">'+wordsHtml(T.live,true)+'</div>';
-    if(T.hint)h+='<div class="hintbox small">وقفت؟ كمّل من: <b>'+esc(T.hint)+'</b></div>';
-    if(T.heard)h+='<div class="heard">اللي سمعته: '+esc(T.heard)+'</div>';
+  /* 4) saved summary */
+  if(T.done){
+    var weak=T.list.filter(function(i){return T.done[i]==='rev'});
+    box.innerHTML='<p style="margin:0;font-weight:700">اتسجل التقييم</p>'
+      +'<p style="margin:0">حافظ: '+ar(T.list.length-weak.length)+' — محتاج مراجعة: '+ar(weak.length)+'</p>'
+      +(weak.length?'<p class="small" style="margin:0">راجع الآيات: '+weak.map(ar).join('، ')+'</p>':'')
+      +'<div class="row"><button class="btn pri" data-act="mic">🎤 سمّع نفس المقطع تاني</button>'
+      +'<button class="btn" data-act="again">اختيار تاني</button></div>';
+    return;
+  }
+
+  var h='<div class="small"><b>بتسمّع:</b> '+scopeText()+'</div>'+cueHtml();
+  var R=T.R;
+
+  /* 2) listening */
+  if(R&&R.listen){
+    var lastOk=lastOkOf(R.live,T.exp),curAyah=null;
+    for(var q=lastOk+1;q<T.E.length;q++)if(T.E[q].e){curAyah=T.E[q].i;break}
+    h+='<div class="live"><span class="pulse"></span>بسمعك... اقرا كله على بعض، وقف لما تخلص</div>';
+    perAyah(R.live).forEach(function(a){
+      h+='<div class="txt'+(a.i===curAyah?' curA':'')+'"'+(a.i===curAyah?' id="curA"':'')+'>'
+        +segHtml(R.live,a.from,a.to,true,lastOk)+' <span class="num">﴿'+ar(a.i)+'﴾</span></div>';
+    });
+    if(R.hint)h+='<div class="hintbox small">وقفت؟ كمّل من (آية '+ar(R.hintAyah)+'): <b>'+esc(R.hint)+'</b></div>';
     h+='<div class="row"><button class="btn pri" data-act="finishMic">انتهيت</button>'
       +'<button class="btn" data-act="cancelMic">إلغاء</button></div>';
-  }else if(T.res){
-    var okW=0,n=0;
-    T.res.forEach(function(x,q){if(T.exp[q]){n++;if(x)okW++}});
-    var perfect=okW===n;
-    h+='<div class="txt">'+wordsHtml(T.res,false)+' <span class="num">﴿'+ar(i)+'﴾</span></div>'
-      +'<div><b>'+(perfect?'ممتاز، الآية كاملة':'صح '+ar(okW)+' من '+ar(n)+' كلمة')+'</b>'
-      +(perfect?'':' <span class="small">(الأحمر اتنسى أو ما اتسمعش كويس)</span>')+'</div>'
-      +'<div class="heard">اللي سمعته: '+esc(T.heard)+'</div>'
-      +'<div class="small">التعرف على الصوت ممكن يعلّم كلمة سليمة بالأحمر، فبص بنفسك قبل ما تقيّم.</div>'
-      +'<div class="row"><button class="btn" data-act="hear">🔊 اسمع الآية</button>'
-      +'<button class="btn" data-act="mic">🎤 جرّب تاني</button></div>'
-      +gradeRow(perfect?'ok':'rev');
-  }else if(T.rev){
-    h+='<div class="txt">'+esc(a.t)+' <span class="num">﴿'+ar(i)+'﴾</span></div>'
-      +'<div class="row"><button class="btn" data-act="hear">🔊 اسمع</button></div>'
-      +gradeRow('');
-  }else{
-    var shownTxt=words.slice(0,T.shown).join(' ');
-    var blanks=new Array(words.length-T.shown+1).join('▢ ').trim();
-    h+='<div class="blank">'+(shownTxt?'<span style="color:var(--fg)">'+esc(shownTxt)+'</span> ':'')+blanks+'</div>';
-    if(T.msg)h+='<div class="err">'+esc(T.msg)+'</div>';
-    h+='<button class="btn pri wide" data-act="mic">🎤 سمّع بصوتك</button>'
-      +(SR?'':'<div class="small">التسميع بالصوت محتاج Chrome على أندرويد. تقدر تسمّع في سرّك وتكشف الآية.</div>')
-      +'<div class="row"><button class="btn" data-act="hint">💡 كلمة</button>'
-      +'<button class="btn" data-act="hear">🔊 اسمع</button>'
-      +'<button class="btn" data-act="reveal">👁 أظهر</button></div>';
+    box.innerHTML=h;
+    var c=$('#curA');if(c)c.scrollIntoView({block:'nearest'});
+    return;
   }
+
+  /* 3) result per ayah */
+  if(T.res){
+    var rows=perAyah(T.res),tot=0,okT=0;
+    rows.forEach(function(a){tot+=a.n;okT+=a.ok});
+    var allGood=okT===tot;
+    h+='<div><b>'+(allGood?'ممتاز، قريت الكل صح':'صح '+ar(okT)+' من '+ar(tot)+' كلمة')+'</b>'
+      +(allGood?'':' <span class="small">(الأحمر اتنسى أو ما اتسمعش كويس)</span>')+'</div>';
+    rows.forEach(function(a){
+      var g=T.grades[a.i];
+      h+='<div class="resA">'
+        +'<div class="txt">'+segHtml(T.res,a.from,a.to,false,-1)+' <span class="num">﴿'+ar(a.i)+'﴾</span></div>'
+        +'<div class="row"><span class="small" style="flex:1;align-self:center">'+(a.ok===a.n?'كاملة':'ناقص '+ar(a.n-a.ok)+' من '+ar(a.n))+'</span>'
+        +'<button class="btn" data-act="hearI" data-i="'+a.i+'" style="flex:0 0 auto">🔊</button>'
+        +'<button class="btn '+(g==='ok'?'ok':'warn')+'" data-act="flip" data-i="'+a.i+'" style="flex:0 0 auto">'+(g==='ok'?'حافظها ✓':'مراجعة ✗')+'</button></div>'
+        +'</div>';
+    });
+    h+='<div class="small">التعرف على الصوت ممكن يعلّم كلمة سليمة بالأحمر. اضغط على زرار التقييم جنب أي آية لو عايز تغيّره قبل الحفظ.</div>'
+      +'<details class="small"><summary>اللي التطبيق سمعه</summary><div class="heard">'+esc(T.heard||'')+'</div></details>'
+      +'<button class="btn pri wide" data-act="save">احفظ التقييم</button>'
+      +'<div class="row"><button class="btn" data-act="mic">🎤 سمّع تاني</button>'
+      +'<button class="btn" data-act="again">اختيار تاني</button></div>';
+    box.innerHTML=h;
+    return;
+  }
+
+  /* ready to start */
+  if(T.peek){
+    T.list.forEach(function(i){h+='<div class="txt">'+esc(ayah(i).t)+' <span class="num">﴿'+ar(i)+'﴾</span></div>'});
+  }else if(T.shown){
+    var shownW=T.E.slice(0,T.shown).filter(function(x){return x.e}).map(function(x){return x.w}).join(' ');
+    h+='<div class="hintbox small">أول الكلام: <b>'+esc(shownW)+'</b></div>';
+  }
+  if(T.msg)h+='<div class="err">'+esc(T.msg)+'</div>';
+  h+=(SR?'<button class="btn pri wide" data-act="mic">🎤 ابدأ التسميع واقرا كله على بعض</button>'
+         :'<div class="err">التسميع بالصوت محتاج Chrome على أندرويد.</div>')
+    +'<div class="row"><button class="btn" data-act="hint">💡 أول كلمة</button>'
+    +'<button class="btn" data-act="peek">'+(T.peek?'🙈 خبّي':'👁 بص على النص')+'</button>'
+    +'<button class="btn" data-act="again">رجوع</button></div>';
   box.innerHTML=h;
 }
 function testClick(e){
@@ -635,21 +692,22 @@ function testClick(e){
   if(act==='startTest'){startTest(b.getAttribute('data-mode'));return}
   if(act==='again'){resetT();return}
   if(!T)return;
-  var i=curI();
-  if(act==='hint'){if(T.shown<T.words.length)T.shown++;renderTest()}
-  else if(act==='reveal'){T.rev=true;renderTest()}
-  else if(act==='hear')playOne(i);
-  else if(act==='mic')startListen();
+  if(act==='mic'){T.done=null;startListen()}
   else if(act==='finishMic')finishListen();
-  else if(act==='cancelMic'){killListen();T.msg='';T.hint='';T.res=null;renderTest()}
-  else if(act==='grade'){
-    var v=b.getAttribute('data-v');
-    setStat(cur.num,i,v);updateDot(i);
-    T.final[i]=v;
-    /* A weak ayah comes back once at the end of the session */
-    if(v==='rev'&&!T.retried[i]){T.retried[i]=1;T.list.push(i)}
-    T.p++;clearAyahState();T.exp=null;renderTest();
-    overall();
+  else if(act==='cancelMic'){killListen();T.R=null;T.msg='';renderTest()}
+  else if(act==='hint'){
+    var n=0;for(var q=0;q<T.E.length;q++)if(T.E[q].e)n++;
+    T.shown=Math.min(T.E.length,(T.shown||0)+1);
+    while(T.shown<T.E.length&&!T.E[T.shown-1].e)T.shown++;
+    renderTest();
+  }
+  else if(act==='peek'){T.peek=!T.peek;renderTest()}
+  else if(act==='hearI')playOne(parseInt(b.getAttribute('data-i'),10));
+  else if(act==='flip'){var fi=b.getAttribute('data-i');T.grades[fi]=T.grades[fi]==='ok'?'rev':'ok';renderTest()}
+  else if(act==='save'){
+    T.list.forEach(function(i){setStat(cur.num,i,T.grades[i]);updateDot(i)});
+    T.done=T.grades;T.res=null;T.R=null;T.shown=0;T.peek=false;
+    fillSurah();overall();renderTest();
   }
 }
 
