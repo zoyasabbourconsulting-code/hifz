@@ -8,143 +8,226 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-/* Layout: one column, ayah text large and central, fixed player bar at the bottom */
+/* Design: deep green + gold, paper-toned surfaces; ayah text is the hero, settings stay compact */
 :root{
-  --bg:#f3f6f4; --card:#ffffff; --fg:#14211c; --mut:#5d6f67; --line:#d5dfda;
-  --acc:#17694f; --acc-fg:#ffffff; --ok:#1b8a4f; --warn:#b9770e; --hl:#e3f2ea; --bad:#c0392b;
+  --bg:#f5f2ea; --card:#fffdf8; --fg:#1b2420; --mut:#6b746e; --line:#e5dfd1; --soft:#efeadf;
+  --acc:#0f6b4f; --acc2:#0b5640; --acc-fg:#ffffff; --gold:#b08a3e; --gold-soft:#f3e9d2;
+  --ok:#1f8a55; --warn:#c07a12; --hl:#e6f2ec; --bad:#c0392b;
+  --hero1:#0d5a43; --hero2:#0a3f30; --shadow:0 1px 2px rgba(30,40,30,.06),0 8px 24px rgba(30,40,30,.06);
   --ui:'Cairo',system-ui,sans-serif; --quran:'Amiri Quran','Traditional Arabic',serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0e1613; --card:#16211d; --fg:#e6efeb; --mut:#93a89f; --line:#26362f;
-    --acc:#46c08f; --acc-fg:#06241a; --ok:#4cc27f; --warn:#e0a63a; --hl:#1b2f27; --bad:#ff7b6b; color-scheme:dark;
+    --bg:#0b1310; --card:#121c18; --fg:#e8efe9; --mut:#94a39b; --line:#22312a; --soft:#18241f;
+    --acc:#43c08c; --acc2:#36a578; --acc-fg:#04231a; --gold:#d6b26a; --gold-soft:#2a2516;
+    --ok:#4cc27f; --warn:#e3a640; --hl:#173027; --bad:#ff7b6b;
+    --hero1:#0f3d2f; --hero2:#0a241c; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0e1613; --card:#16211d; --fg:#e6efeb; --mut:#93a89f; --line:#26362f;
-  --acc:#46c08f; --acc-fg:#06241a; --ok:#4cc27f; --warn:#e0a63a; --hl:#1b2f27; --bad:#ff7b6b; color-scheme:dark;
+  --bg:#0b1310; --card:#121c18; --fg:#e8efe9; --mut:#94a39b; --line:#22312a; --soft:#18241f;
+  --acc:#43c08c; --acc2:#36a578; --acc-fg:#04231a; --gold:#d6b26a; --gold-soft:#2a2516;
+  --ok:#4cc27f; --warn:#e3a640; --hl:#173027; --bad:#ff7b6b;
+  --hero1:#0f3d2f; --hero2:#0a241c; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
 body{
   background:var(--bg); color:var(--fg); font-family:var(--ui); font-size:16px; line-height:1.6;
-  padding-block:16px 190px;
+  padding-block:16px 170px;
   padding-left:max(16px, env(safe-area-inset-left,0px));
   padding-right:max(16px, env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;
 }
 .wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-h1{font-size:1.35rem;margin:0}
-.top{display:flex;flex-direction:column;gap:8px}
-.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
-.bar>i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
 .small{font-size:.85rem;color:var(--mut)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--mut);min-width:0}
-label.chk{flex-direction:row;align-items:center;gap:8px;font-size:.9rem;color:var(--fg);cursor:pointer}
-label.chk input{width:20px;height:20px;accent-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+
+/* hero */
+.hero{
+  position:relative;overflow:hidden;border-radius:22px;padding:18px 18px 16px;color:#fff;
+  background:
+    radial-gradient(circle at 15% 120%,rgba(214,178,106,.25),transparent 55%),
+    linear-gradient(160deg,var(--hero1),var(--hero2));
+  box-shadow:var(--shadow);
+}
+.hero::before{ /* eight-point star lattice */
+  content:"";position:absolute;inset:0;opacity:.14;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44' viewBox='0 0 44 44'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1'%3E%3Crect x='12' y='12' width='20' height='20'/%3E%3Crect x='12' y='12' width='20' height='20' transform='rotate(45 22 22)'/%3E%3Ccircle cx='22' cy='22' r='4'/%3E%3Cpath d='M0 0l7.9 7.9M44 0l-7.9 7.9M0 44l7.9-7.9M44 44l-7.9-7.9'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:44px 44px;background-position:center;
+  -webkit-mask-image:linear-gradient(to left,#000,transparent 75%);mask-image:linear-gradient(to left,#000,transparent 75%);
+}
+.hero .in{position:relative;display:flex;align-items:center;gap:16px}
+.hero h1{margin:0;font-size:1.45rem;line-height:1.3;font-weight:800}
+.hero .sub{font-size:.88rem;opacity:.85;margin-top:2px}
+.hero .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:12px;position:relative}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#e7c77c,#d6b26a);width:0;transition:width .4s;border-radius:99px}
+.ring{
+  --p:0;flex:none;width:68px;height:68px;border-radius:50%;margin-inline-start:auto;
+  background:conic-gradient(#e7c77c calc(var(--p)*1%),rgba(255,255,255,.16) 0);
+  display:grid;place-items:center;
+}
+.ring span{width:54px;height:54px;border-radius:50%;background:var(--hero2);display:grid;place-items:center;font-weight:800;font-size:1rem}
+
+/* session card */
+.session{display:flex;flex-direction:column;gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--mut);min-width:0;font-weight:600}
+label.chk{flex-direction:row;align-items:center;gap:10px;font-size:.92rem;color:var(--fg);cursor:pointer;font-weight:600}
+label.chk input{width:20px;height:20px;accent-color:var(--acc);margin:0}
 select,button{font:inherit}
-select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+select{
+  width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:var(--fg);
+  font-weight:600;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23889590' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position:12px 50%;background-size:12px 8px;background-repeat:no-repeat;padding-left:32px;
+}
 select:disabled{opacity:.5}
+select.big{font-size:1.25rem;font-weight:800;padding-block:12px;background-color:var(--gold-soft);border-color:transparent}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .full{grid-column:1/-1}
-.tabs{display:flex;gap:8px}
-.tab{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-weight:600;cursor:pointer}
-.tab[aria-selected="true"]{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
-.btn{padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-weight:600;cursor:pointer}
+details.more{border-top:1px dashed var(--line);padding-top:10px}
+details.more summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::after{content:"";margin-inline-start:auto;width:8px;height:8px;border-left:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-45deg);transition:transform .2s}
+details.more[open] summary::after{transform:rotate(135deg)}
+details.more summary .small{font-weight:600}
+details.more .grid{margin-top:12px}
+
+/* tabs */
+.tabs{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}
+.tab{flex:1;padding:9px;border-radius:10px;border:0;background:transparent;color:var(--mut);font-weight:700;cursor:pointer;transition:background .2s,color .2s}
+.tab[aria-selected="true"]{background:var(--card);color:var(--acc);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* buttons */
+.btn{padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);font-weight:700;cursor:pointer;transition:transform .1s,background .2s}
+.btn:active{transform:scale(.97)}
 .btn.pri{background:var(--acc);color:var(--acc-fg);border-color:var(--acc)}
 .btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
 .btn.warn{background:var(--warn);color:#fff;border-color:var(--warn)}
 .btn.wide{width:100%}
-.btn:focus-visible,.tab:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn:focus-visible,.tab:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .row>.btn{flex:1;min-width:70px;white-space:nowrap}
-.player .row>.btn{padding:11px 6px;min-width:0}
 .stack{display:flex;flex-direction:column;gap:10px}
-.ay{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:12px;cursor:pointer;border:1px solid transparent}
-.ay.out{opacity:.5}
+
+/* ayah list */
+#list{display:flex;flex-direction:column;gap:8px}
+.ay{display:flex;gap:12px;align-items:flex-start;padding:12px 12px 8px;border-radius:14px;cursor:pointer;border:1px solid transparent;transition:background .2s,border-color .2s,opacity .2s}
+.ay:hover{background:var(--soft)}
+.ay.out{opacity:.45}
 .ay.on{background:var(--hl);border-color:var(--acc);opacity:1}
-.dot{flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--mut);margin-top:22px}
-.dot.ok{background:var(--ok);border-color:var(--ok)}
-.dot.rev{background:var(--warn);border-color:var(--warn)}
-.txt{font-family:var(--quran);font-size:1.7rem;line-height:2.4;min-width:0;overflow-wrap:anywhere}
+/* ayah-number medallion: two rotated squares make an eight-point star */
+.dot{flex:none;position:relative;width:34px;height:34px;margin-top:12px;display:grid;place-items:center;font-size:.85rem;font-weight:800;color:var(--gold)}
+.dot::before,.dot::after{content:"";position:absolute;inset:5px;border:1.5px solid var(--gold);border-radius:4px;background:var(--card)}
+.dot::after{transform:rotate(45deg)}
+.dot>b{position:relative;z-index:1}
+.dot.ok{color:#fff}.dot.ok::before,.dot.ok::after{background:var(--ok);border-color:var(--ok)}
+.dot.rev{color:#fff}.dot.rev::before,.dot.rev::after{background:var(--warn);border-color:var(--warn)}
+.ay .txt{flex:1}
+.txt{font-family:var(--quran);font-size:1.75rem;line-height:2.35;min-width:0;overflow-wrap:anywhere}
 #list.hide .txt{filter:blur(9px);transition:filter .2s}
 #list.hide .ay.peek .txt{filter:none}
-.basm{font-family:var(--quran);font-size:1.4rem;text-align:center;color:var(--mut);padding-bottom:6px}
-.num{font-size:1.1rem;color:var(--acc)}
+.basm{font-family:var(--quran);font-size:1.45rem;text-align:center;color:var(--gold);padding:4px 0 8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;font-size:.78rem;color:var(--mut)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px;vertical-align:middle;border:1.5px solid var(--gold)}
+.legend i.ok{background:var(--ok);border-color:var(--ok)}.legend i.rev{background:var(--warn);border-color:var(--warn)}
+.num{font-size:1.1rem;color:var(--gold)}
 .cue{font-family:var(--quran);font-size:1.25rem;line-height:2.1;color:var(--mut)}
-.blank{font-family:var(--quran);font-size:1.7rem;line-height:2.4;letter-spacing:.15em;color:var(--mut);overflow-wrap:anywhere}
 .wok{color:var(--ok)} .wmiss{color:var(--bad);text-decoration:underline wavy}
 .heard{font-size:.85rem;color:var(--mut);overflow-wrap:anywhere}
-.live{display:flex;align-items:center;gap:8px;font-weight:600}
+.live{display:flex;align-items:center;gap:8px;font-weight:700}
 .pulse{width:12px;height:12px;border-radius:50%;background:var(--bad);animation:pl 1s infinite}
 @keyframes pl{50%{opacity:.25}}
-.curA{background:var(--hl);border-radius:10px;padding:0 8px}
+.curA{background:var(--hl);border-radius:12px;padding:0 10px}
 .resA{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 details summary{cursor:pointer}
-.hintbox{background:var(--hl);border-radius:10px;padding:6px 10px}
-.asrbox{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.hintbox{background:var(--gold-soft);border-radius:12px;padding:8px 12px}
 .hintbox b{font-family:var(--quran);font-size:1.35rem;font-weight:400;color:var(--fg)}
-.player{
-  position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
-  padding:10px max(16px, env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px, env(safe-area-inset-left,0px));
+.asrbox{padding:12px;margin-bottom:14px;border-radius:14px;background:var(--soft)}
+
+/* player */
+.player{position:fixed;left:0;right:0;bottom:0;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.player .in{
+  pointer-events:auto;max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:8px;padding:10px 12px 12px;
+  background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.15);
 }
-.player .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
-.status{font-size:.9rem;min-height:1.4em;text-align:center}
+.status{font-size:.88rem;min-height:1.4em;text-align:center;color:var(--mut);font-weight:600}
 #seek{width:100%;accent-color:var(--acc)}
-.err{color:var(--warn);font-weight:600}
+.ctrl{display:flex;align-items:center;gap:8px}
+.ctrl .btn{padding:10px 8px;min-width:0}
+.ctrl .ico{width:48px;flex:none;font-size:1.05rem}
+.ctrl .side{flex:1;font-size:.9rem;white-space:nowrap}
+.ctrl #bPlay{flex:1.6;border-radius:99px;padding:12px;font-size:1.05rem;box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent)}
+.err{color:var(--warn);font-weight:700}
+.foot{text-align:center;font-size:.75rem;color:var(--mut);line-height:1.7;padding:0 8px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <h1>حفظ جزء عمّ</h1>
+  <header class="hero">
+    <div class="in">
+      <div>
+        <h1>حفظ جزء عمّ</h1>
+        <div class="sub" id="allTxt"></div>
+      </div>
+      <div class="ring" id="ring" aria-hidden="true"><span id="allPct">٠٪</span></div>
+    </div>
     <div class="bar" aria-hidden="true"><i id="allBar"></i></div>
-    <div class="small" id="allTxt"></div>
-  </div>
+  </header>
 
-  <div class="card grid">
-    <label class="full">القارئ
-      <select id="voice">
-        <option value="alafasy" selected>مشاري راشد العفاسي (آية آية)</option>
-        <option value="sobhy">إسلام صبحي (السورة كاملة)</option>
-      </select>
+  <section class="card session">
+    <label>السورة
+      <select id="surah" class="big"></select>
     </label>
-    <div class="small full" id="voiceNote" hidden>تسجيل إسلام صبحي متاح للسورة كاملة بس، فمفيش معاه تكرار آية آية. لما تضغط على آية أو تسمّع، الصوت بيبقى للعفاسي.</div>
-    <label class="full">السورة
-      <select id="surah"></select>
-    </label>
-    <label>من آية <select id="from"></select></label>
-    <label>إلى آية <select id="to"></select></label>
-    <label>تكرار كل آية
-      <select id="rep">
-        <option value="1">مرة</option><option value="3">٣ مرات</option><option value="5" selected>٥ مرات</option><option value="7">٧ مرات</option><option value="10">١٠ مرات</option><option value="15">١٥ مرة</option><option value="20">٢٠ مرة</option>
-      </select>
-    </label>
-    <label><span id="linkLbl">ربط المقطع بعد التكرار</span>
-      <select id="link">
-        <option value="0">بدون</option><option value="1" selected>مرة</option><option value="2">مرتين</option><option value="3">٣ مرات</option><option value="5">٥ مرات</option>
-      </select>
-    </label>
-    <label>سرعة القراءة
-      <select id="speed">
-        <option value="0.75">بطيئة</option>
-        <option value="1" selected>عادية</option>
-        <option value="1.25">أسرع</option>
-      </select>
-    </label>
-    <label>ردّد بعد الشيخ
-      <select id="echo">
-        <option value="0" selected>لا</option>
-        <option value="1">أيوه، سكتة بطول الآية</option>
-      </select>
-    </label>
-  </div>
+    <div class="grid">
+      <label>من آية <select id="from"></select></label>
+      <label>إلى آية <select id="to"></select></label>
+      <label class="full">القارئ
+        <select id="voice">
+          <option value="alafasy" selected>مشاري راشد العفاسي</option>
+          <option value="husary">محمود خليل الحصري (مرتّل — الأنسب للحفظ)</option>
+          <option value="minshawi">محمد صديق المنشاوي (مرتّل)</option>
+          <option value="sobhy">إسلام صبحي (السورة كاملة)</option>
+        </select>
+      </label>
+    </div>
+    <div class="small" id="voiceNote" hidden>تسجيل إسلام صبحي متاح للسورة كاملة بس، فمفيش معاه تكرار آية آية. لما تضغط على آية أو تسمّع، الصوت بيبقى للعفاسي.</div>
+    <details class="more" id="more">
+      <summary>إعدادات التكرار <span class="small" id="moreSum"></span></summary>
+      <div class="grid">
+        <label>تكرار كل آية
+          <select id="rep">
+            <option value="1">مرة</option><option value="3">٣ مرات</option><option value="5" selected>٥ مرات</option><option value="7">٧ مرات</option><option value="10">١٠ مرات</option><option value="15">١٥ مرة</option><option value="20">٢٠ مرة</option>
+          </select>
+        </label>
+        <label><span id="linkLbl">ربط المقطع بعد التكرار</span>
+          <select id="link">
+            <option value="0">بدون</option><option value="1" selected>مرة</option><option value="2">مرتين</option><option value="3">٣ مرات</option><option value="5">٥ مرات</option>
+          </select>
+        </label>
+        <label>سرعة القراءة
+          <select id="speed">
+            <option value="0.75">بطيئة</option>
+            <option value="1" selected>عادية</option>
+            <option value="1.25">أسرع</option>
+          </select>
+        </label>
+        <label>ردّد بعد الشيخ
+          <select id="echo">
+            <option value="0" selected>لا</option>
+            <option value="1">أيوه، سكتة بطول الآية</option>
+          </select>
+        </label>
+      </div>
+    </details>
+  </section>
 
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" id="tabH" aria-selected="true" data-tab="h">حفظ</button>
-    <button class="tab" role="tab" id="tabT" aria-selected="false" data-tab="t">تسميع</button>
+    <button class="tab" role="tab" id="tabH" aria-selected="true" data-tab="h">📖 حفظ</button>
+    <button class="tab" role="tab" id="tabT" aria-selected="false" data-tab="t">🎤 تسميع</button>
   </div>
 
   <div id="msg" class="err" hidden></div>
@@ -152,6 +235,7 @@ details summary{cursor:pointer}
   <section id="paneH" class="card stack">
     <label class="chk"><input type="checkbox" id="hide"> إخفاء النص (تسمع وتقول من غير ما تبص)</label>
     <div class="small" id="hideNote" hidden>اضغط على أي آية عشان تكشفها أو تخبيها.</div>
+    <div class="legend"><span><i></i>لسه</span><span><i class="ok"></i>حافظها</span><span><i class="rev"></i>محتاجة مراجعة</span></div>
     <div id="list"></div>
   </section>
 
@@ -170,18 +254,18 @@ details summary{cursor:pointer}
     <div id="testBox" class="stack"></div>
   </section>
 
-  <div class="small">النص بالرسم العثماني من alquran.cloud. صوت العفاسي من cdn.islamic.network وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التطبيق يحتاج إنترنت، والتقدم بيتحفظ على الموبايل ده بس.</div>
+  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التقدم بيتحفظ على الموبايل ده بس.</div>
 </div>
 
 <div class="player">
   <div class="in">
     <div class="status" id="status">اختار المقطع واضغط تشغيل</div>
     <input type="range" id="seek" min="0" max="1000" value="0" aria-label="موضع التشغيل" hidden>
-    <div class="row">
+    <div class="ctrl">
+      <button class="btn ico" id="bStop" aria-label="إيقاف">⏹</button>
       <button class="btn pri" id="bPlay">▶ تشغيل</button>
-      <button class="btn" id="bPause">⏸ مؤقت</button>
-      <button class="btn" id="bNext">⏭ التالية</button>
-      <button class="btn" id="bStop">⏹ إيقاف</button>
+      <button class="btn ico" id="bPause" aria-label="إيقاف مؤقت">⏸</button>
+      <button class="btn side" id="bNext">⏭ التالية</button>
     </div>
   </div>
 </div>
@@ -194,7 +278,9 @@ var TOTAL=SURAHS.reduce(function(s,x){return s+x[2]},0);
 function $(s){return document.querySelector(s)}
 function ar(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d]})}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function audioUrl(n){return 'https://cdn.islamic.network/quran/audio/128/ar.alafasy/'+n+'.mp3'}
+/* per-ayah reciters on cdn.islamic.network (all at 128 kbps); Islam Sobhi has whole surahs only, so single ayahs fall back to Alafasy */
+var EDITIONS={alafasy:'ar.alafasy',husary:'ar.husary',minshawi:'ar.minshawi'};
+function audioUrl(n){return 'https://cdn.islamic.network/quran/audio/128/'+(EDITIONS[voice()]||'ar.alafasy')+'/'+n+'.mp3'}
 /* Islam Sobhi: whole-surah files only; three file names carry a leading zero on the source site */
 function sobhyUrl(num){
   var f=(num===79||num===85||num===88)?'0'+num:String(num);
@@ -257,8 +343,11 @@ function fillSurah(){
 }
 function overall(){
   var done=0;SURAHS.forEach(function(x){done+=countStat(x[0],'ok')});
-  $('#allBar').style.width=(done/TOTAL*100)+'%';
-  $('#allTxt').textContent='حفظت '+ar(done)+' آية من '+ar(TOTAL)+' في الجزء';
+  var pct=done/TOTAL*100;
+  $('#allBar').style.width=pct+'%';
+  $('#ring').style.setProperty('--p',pct.toFixed(1));
+  $('#allPct').textContent=ar(Math.round(pct))+'٪';
+  $('#allTxt').textContent=done?'حفظت '+ar(done)+' آية من '+ar(TOTAL):'ابدأ رحلتك مع '+ar(TOTAL)+' آية';
 }
 function fillRange(count,firstFrom){
   var f=$('#from'),t=$('#to');
@@ -321,8 +410,8 @@ function renderList(){
   for(var i=1;i<=cur.count;i++){
     var a=ayah(i),inR=i>=rangeFrom()&&i<=rangeTo();
     h+='<div class="ay'+(inR?'':' out')+'" data-i="'+i+'" id="ay'+i+'">'
-      +'<span class="dot '+stat(cur.num,i)+'" id="dot'+i+'"></span>'
-      +'<span class="txt">'+esc(a.t)+' <span class="num">﴿'+ar(i)+'﴾</span></span></div>';
+      +'<span class="dot '+stat(cur.num,i)+'" id="dot'+i+'"><b>'+ar(i)+'</b></span>'
+      +'<span class="txt">'+esc(a.t)+'</span></div>';
   }
   $('#list').innerHTML=h;
 }
@@ -1034,6 +1123,13 @@ function switchTab(t){
 document.querySelectorAll('.tab').forEach(function(b){
   b.addEventListener('click',function(){switchTab(b.getAttribute('data-tab'))});
 });
+/* one-line summary of the folded repeat settings */
+function moreSum(){
+  function t(id){var e=$('#'+id);return e.options[e.selectedIndex].text}
+  var parts=isSobhy()?['السورة '+t('link')]:['كل آية '+t('rep'),'ربط '+t('link')];
+  parts.push(t('speed'));if($('#echo').value==='1')parts.push('ترديد');
+  $('#moreSum').textContent='— '+parts.join(' · ');
+}
 function updateVoiceUI(){
   var s=isSobhy();
   $('#voiceNote').hidden=!s;
@@ -1041,12 +1137,14 @@ function updateVoiceUI(){
   $('#seek').hidden=!s;
   $('#linkLbl').textContent=s?'عدد مرات تشغيل السورة':'ربط المقطع بعد التكرار';
   $('#bNext').textContent=s?'⏩ ١٥ ث':'⏭ التالية';
+  moreSum();
 }
 SETTINGS.forEach(function(id){
   $('#'+id).addEventListener('change',function(){
     var p={};p[id]=this.value;saveUI(p);
     if(id==='voice'){stopAll();updateVoiceUI()}
     if(id==='speed'){audio.defaultPlaybackRate=rate();audio.playbackRate=rate()}
+    moreSum();
     if(id==='engine'){
       if(isListening()){killListen();T.R=null}
       if(MODELS[this.value]&&asrCached(this.value)&&CAN_REC)asrLoad(this.value);
