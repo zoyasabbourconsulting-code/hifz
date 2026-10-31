@@ -127,7 +127,16 @@ details.more .grid{margin-top:12px}
 .dot>b{position:relative;z-index:1}
 .dot.ok{color:#fff}.dot.ok::before,.dot.ok::after{background:var(--ok);border-color:var(--ok)}
 .dot.rev{color:#fff}.dot.rev::before,.dot.rev::after{background:var(--warn);border-color:var(--warn)}
-.ay .txt{flex:1}
+.ay .bd{flex:1;min-width:0}
+.taf{display:none;margin:2px 0 8px;padding:12px 14px;border-radius:14px;background:var(--gold-soft);border-inline-start:4px solid var(--gold);cursor:default}
+.ay.open .taf{display:block;animation:tafin .2s ease-out}
+@keyframes tafin{from{opacity:0;transform:translateY(-4px)}}
+#list.hide .ay:not(.peek) .taf{display:none}
+.taf-h{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:.8rem;font-weight:800;color:var(--gold)}
+.taf-h .btn{margin-inline-start:auto;padding:5px 12px;font-size:.8rem;border-radius:99px;font-weight:700}
+.taf-t{font-size:1rem;line-height:2;color:var(--fg);overflow-wrap:anywhere}
+.taf-t.mut{color:var(--mut);font-size:.9rem}
+.ay.open{background:var(--soft)}
 .txt{font-family:var(--quran);font-size:1.75rem;line-height:2.35;min-width:0;overflow-wrap:anywhere}
 #list.hide .txt{filter:blur(9px);transition:filter .2s}
 #list.hide .ay.peek .txt{filter:none}
@@ -266,6 +275,7 @@ body.adk-mode{padding-bottom:40px}
   <section id="paneH" class="card stack">
     <label class="chk"><input type="checkbox" id="hide"> إخفاء النص (تسمع وتقول من غير ما تبص)</label>
     <div class="small" id="hideNote" hidden>اضغط على أي آية عشان تكشفها أو تخبيها.</div>
+    <div class="small" style="text-align:center">اضغط على أي آية عشان يظهر تفسيرها تحتها</div>
     <div class="legend"><span><i></i>لسه</span><span><i class="ok"></i>حافظها</span><span><i class="rev"></i>محتاجة مراجعة</span></div>
     <div id="list"></div>
   </section>
@@ -297,7 +307,7 @@ body.adk-mode{padding-bottom:40px}
     <input type="file" id="adkFile" accept="audio/*,.mp3,.m4a" hidden>
   </section>
 
-  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس.</div>
+  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التفسير الميسر من مجمع الملك فهد لطباعة المصحف الشريف. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس.</div>
 </div>
 
 <div class="player">
@@ -454,7 +464,8 @@ function renderList(){
     var a=ayah(i),inR=i>=rangeFrom()&&i<=rangeTo();
     h+='<div class="ay'+(inR?'':' out')+'" data-i="'+i+'" id="ay'+i+'">'
       +'<span class="dot '+stat(cur.num,i)+'" id="dot'+i+'"><b>'+ar(i)+'</b></span>'
-      +'<span class="txt">'+esc(a.t)+'</span></div>';
+      +'<div class="bd"><span class="txt">'+esc(a.t)+'</span>'
+      +'<div class="taf"><div class="taf-h"><span>📖 التفسير الميسر</span><button class="btn" data-hear="'+i+'">🔊 اسمع الآية</button></div><div class="taf-t" id="tt'+i+'"></div></div></div></div>';
   }
   $('#list').innerHTML=h;
 }
@@ -463,6 +474,39 @@ function highlight(i){
   document.querySelectorAll('.ay.on').forEach(function(e){e.classList.remove('on')});
   var el=$('#ay'+i);
   if(el&&!$('#paneH').hidden){el.classList.add('on');el.scrollIntoView({block:'center',behavior:'smooth'})}
+}
+
+/* ---------- Tafsir (التفسير الميسر, King Fahd Complex): tap an ayah to read it under the ayah ---------- */
+/* One small file shipped with the app (tafsir-muyassar.json) and cached by the service worker, so it works offline */
+var TAF=null,tafP=null;
+function loadTafsir(){
+  if(TAF)return Promise.resolve(TAF);
+  if(!tafP)tafP=fetch('tafsir-muyassar.json').then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()})
+    .then(function(j){TAF=j;return j},function(e){tafP=null;throw e});
+  return tafP;
+}
+function tafFill(i){
+  var box=$('#tt'+i);if(!box||!cur)return;
+  var num=cur.num;
+  loadTafsir().then(function(j){
+    if(!cur||cur.num!==num)return;
+    var t=j[num]&&j[num][i];
+    box.className='taf-t'+(t?'':' mut');
+    box.textContent=t||'مفيش تفسير متاح للآية دي.';
+  },function(){
+    box.className='taf-t mut';
+    box.textContent='تعذر تحميل التفسير. افتح التطبيق مرة وأنت متصل بالإنترنت.';
+  });
+}
+function toggleTafsir(el){
+  var i=parseInt(el.getAttribute('data-i'),10),was=el.classList.contains('open');
+  document.querySelectorAll('.ay.open').forEach(function(e){e.classList.remove('open')});
+  if(was)return;
+  el.classList.add('open');
+  var box=$('#tt'+i);
+  if(box&&!box.textContent){box.className='taf-t mut';box.textContent='جاري تحميل التفسير...'}
+  tafFill(i);
+  setTimeout(function(){el.scrollIntoView({block:'nearest',behavior:'smooth'})},60);
 }
 
 /* ---------- Audio queue ---------- */
@@ -1222,9 +1266,19 @@ $('#to').addEventListener('change',function(){
   rangeChanged();
 });
 $('#list').addEventListener('click',function(e){
+  var hear=e.target.closest('[data-hear]');
+  if(hear){playOne(parseInt(hear.getAttribute('data-hear'),10));return}
+  if(e.target.closest('.taf'))return; /* reading or selecting the tafsir text must not close it */
   var el=e.target.closest('.ay');if(!el)return;
-  if($('#hide').checked){el.classList.toggle('peek');return}
-  playOne(parseInt(el.getAttribute('data-i'),10));
+  if($('#hide').checked){
+    /* memorizing mode: tap reveals the ayah together with its tafsir, tap again hides both */
+    var show=!el.classList.contains('peek');
+    el.classList.toggle('peek',show);
+    document.querySelectorAll('.ay.open').forEach(function(x){x.classList.remove('open')});
+    if(show)toggleTafsir(el);
+    return;
+  }
+  toggleTafsir(el);
 });
 $('#testBox').addEventListener('click',testClick);
 $('#asrLoad').addEventListener('click',function(){var e=engine();if(e!=='chrome')asrLoad(e)});
