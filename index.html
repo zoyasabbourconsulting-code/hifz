@@ -49,7 +49,7 @@ body{
 
 /* hero */
 .hero{
-  position:relative;overflow:hidden;border-radius:22px;padding:18px 18px 16px;color:#fff;
+  position:relative;overflow:hidden;border-radius:20px;padding:14px 16px 12px;color:#fff;
   background:
     radial-gradient(circle at 15% 120%,rgba(214,178,106,.25),transparent 55%),
     linear-gradient(160deg,var(--hero1),var(--hero2));
@@ -61,17 +61,17 @@ body{
   background-size:44px 44px;background-position:center;
   -webkit-mask-image:linear-gradient(to left,#000,transparent 75%);mask-image:linear-gradient(to left,#000,transparent 75%);
 }
-.hero .in{position:relative;display:flex;align-items:center;gap:16px}
-.hero h1{margin:0;font-size:1.45rem;line-height:1.3;font-weight:800}
-.hero .sub{font-size:.88rem;opacity:.85;margin-top:2px}
-.hero .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:12px;position:relative}
+.hero .in{position:relative;display:flex;align-items:center;gap:14px}
+.hero h1{margin:0;font-size:1.25rem;line-height:1.3;font-weight:800}
+.hero .sub{font-size:.82rem;opacity:.85;margin-top:0}
+.hero .bar{height:5px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:10px;position:relative}
 .bar>i{display:block;height:100%;background:linear-gradient(90deg,#e7c77c,#d6b26a);width:0;transition:width .4s;border-radius:99px}
 .ring{
-  --p:0;flex:none;width:68px;height:68px;border-radius:50%;margin-inline-start:auto;
+  --p:0;flex:none;width:52px;height:52px;border-radius:50%;margin-inline-start:auto;
   background:conic-gradient(#e7c77c calc(var(--p)*1%),rgba(255,255,255,.16) 0);
   display:grid;place-items:center;
 }
-.ring span{width:54px;height:54px;border-radius:50%;background:var(--hero2);display:grid;place-items:center;font-weight:800;font-size:1rem}
+.ring span{width:41px;height:41px;border-radius:50%;background:var(--hero2);display:grid;place-items:center;font-weight:800;font-size:.8rem}
 
 /* session card */
 .session{display:flex;flex-direction:column;gap:12px}
@@ -94,12 +94,13 @@ details.more summary{list-style:none;cursor:pointer;display:flex;align-items:cen
 details.more summary::-webkit-details-marker{display:none}
 details.more summary::after{content:"";margin-inline-start:auto;width:8px;height:8px;border-left:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-45deg);transition:transform .2s}
 details.more[open] summary::after{transform:rotate(135deg)}
-details.more summary .small{font-weight:600}
+details.more summary .small{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+details.more summary b{flex:none}
 details.more .grid{margin-top:12px}
 
 /* tabs */
-.tabs{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--soft);border:1px solid var(--line)}
-.tab{flex:1;padding:9px;border-radius:10px;border:0;background:transparent;color:var(--mut);font-weight:700;cursor:pointer;transition:background .2s,color .2s}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:16px;background:color-mix(in srgb,var(--soft) 90%,transparent);border:1px solid var(--line);position:sticky;top:max(8px,env(safe-area-inset-top,0px));z-index:30;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.tab{flex:1;padding:10px 6px;border-radius:10px;border:0;background:transparent;color:var(--mut);font-weight:700;cursor:pointer;transition:background .2s,color .2s}
 .tab[aria-selected="true"]{background:var(--card);color:var(--acc);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 
 /* buttons */
@@ -116,7 +117,7 @@ details.more .grid{margin-top:12px}
 
 /* ayah list */
 #list{display:flex;flex-direction:column;gap:8px}
-.ay{display:flex;gap:12px;align-items:flex-start;padding:12px 12px 8px;border-radius:14px;cursor:pointer;border:1px solid transparent;transition:background .2s,border-color .2s,opacity .2s}
+.ay{scroll-margin:76px 0 130px;display:flex;gap:12px;align-items:flex-start;padding:12px 12px 8px;border-radius:14px;cursor:pointer;border:1px solid transparent;transition:background .2s,border-color .2s,opacity .2s}
 .ay:hover{background:var(--soft)}
 .ay.out{opacity:.45}
 .ay.on{background:var(--hl);border-color:var(--acc);opacity:1}
@@ -137,6 +138,21 @@ details.more .grid{margin-top:12px}
 .taf-t{font-size:1rem;line-height:2;color:var(--fg);overflow-wrap:anywhere}
 .taf-t.mut{color:var(--mut);font-size:.9rem}
 .ay.open{background:var(--soft)}
+.side{flex:none;display:flex;flex-direction:column;align-items:center;gap:0}
+.side .dot{margin-top:12px}
+.sb{font-size:.9rem;line-height:1;margin-top:3px;cursor:help}
+.taf-h{flex-wrap:nowrap}
+.taf-h .btn{flex:none;padding:6px 11px}
+.tt{display:flex;gap:2px;padding:3px;border-radius:99px;background:color-mix(in srgb,var(--gold) 14%,var(--card));min-width:0;flex:1}
+.tt button{flex:1;border:0;background:transparent;color:var(--mut);font:inherit;font-weight:700;font-size:.76rem;padding:6px 6px;border-radius:99px;cursor:pointer;white-space:nowrap}
+.tt button[aria-pressed="true"]{background:var(--card);color:var(--gold);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.taf-s{font-size:1rem;line-height:2;overflow-wrap:anywhere}
+.occ{padding:10px 0;border-top:1px dashed color-mix(in srgb,var(--gold) 45%,transparent)}
+.occ:first-child{border-top:0;padding-top:0}
+.occ p{margin:0 0 6px}
+.occ-n{font-size:.78rem;font-weight:800;color:var(--gold);margin-bottom:4px}
+.qv{font-family:var(--quran);color:var(--acc);font-size:1.12em}
+.taf-src{margin-top:8px;font-size:.75rem;color:var(--mut)}
 .txt{font-family:var(--quran);font-size:1.75rem;line-height:2.35;min-width:0;overflow-wrap:anywhere}
 #list.hide .txt{filter:blur(9px);transition:filter .2s}
 #list.hide .ay.peek .txt{filter:none}
@@ -156,7 +172,12 @@ details.more .grid{margin-top:12px}
 details summary{cursor:pointer}
 .hintbox{background:var(--gold-soft);border-radius:12px;padding:8px 12px}
 .hintbox b{font-family:var(--quran);font-size:1.35rem;font-weight:400;color:var(--fg)}
-.asrbox{padding:12px;margin-bottom:14px;border-radius:14px;background:var(--soft)}
+.asrbox{padding:12px 14px;margin-bottom:14px;border-radius:14px;background:var(--soft)}
+.asrbox>details>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem}
+.asrbox>details>summary::-webkit-details-marker{display:none}
+.asrbox>details>summary::after{content:"";margin-inline-start:auto;flex:none;width:8px;height:8px;border-left:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-45deg);transition:transform .2s}
+.asrbox>details[open]>summary::after{transform:rotate(135deg)}
+.asrbox>details>summary .small{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 
 /* player */
 .player{position:fixed;left:0;right:0;bottom:0;padding:0 12px calc(12px + env(safe-area-inset-bottom,0px));pointer-events:none}
@@ -230,19 +251,19 @@ body.adk-mode{padding-bottom:40px}
     <div class="grid">
       <label>من آية <select id="from"></select></label>
       <label>إلى آية <select id="to"></select></label>
-      <label class="full">القارئ
-        <select id="voice">
-          <option value="alafasy" selected>مشاري راشد العفاسي</option>
-          <option value="husary">محمود خليل الحصري (مرتّل — الأنسب للحفظ)</option>
-          <option value="minshawi">محمد صديق المنشاوي (مرتّل)</option>
-          <option value="sobhy">إسلام صبحي (السورة كاملة)</option>
-        </select>
-      </label>
     </div>
-    <div class="small" id="voiceNote" hidden>تسجيل إسلام صبحي متاح للسورة كاملة بس، فمفيش معاه تكرار آية آية. لما تضغط على آية أو تسمّع، الصوت بيبقى للعفاسي.</div>
     <details class="more" id="more">
-      <summary>إعدادات التكرار <span class="small" id="moreSum"></span></summary>
+      <summary><b>🎧 إعدادات الصوت</b> <span class="small" id="moreSum"></span></summary>
       <div class="grid">
+        <label class="full">القارئ
+          <select id="voice">
+            <option value="alafasy" selected>مشاري راشد العفاسي</option>
+            <option value="husary">محمود خليل الحصري (مرتّل — الأنسب للحفظ)</option>
+            <option value="minshawi">محمد صديق المنشاوي (مرتّل)</option>
+            <option value="sobhy">إسلام صبحي (السورة كاملة)</option>
+          </select>
+        </label>
+        <div class="small full" id="voiceNote" hidden>تسجيل إسلام صبحي متاح للسورة كاملة بس، فمفيش معاه تكرار آية آية. لما تضغط على 🔊 أو تسمّع آية، الصوت بيبقى للعفاسي.</div>
         <label>تكرار كل آية
           <select id="rep">
             <option value="1">مرة</option><option value="3">٣ مرات</option><option value="5" selected>٥ مرات</option><option value="7">٧ مرات</option><option value="10">١٠ مرات</option><option value="15">١٥ مرة</option><option value="20">٢٠ مرة</option>
@@ -275,22 +296,27 @@ body.adk-mode{padding-bottom:40px}
   <section id="paneH" class="card stack">
     <label class="chk"><input type="checkbox" id="hide"> إخفاء النص (تسمع وتقول من غير ما تبص)</label>
     <div class="small" id="hideNote" hidden>اضغط على أي آية عشان تكشفها أو تخبيها.</div>
+    <div class="legend"><span><i></i>لسه</span><span><i class="ok"></i>حافظها</span><span><i class="rev"></i>مراجعة</span><span>📜 ليها سبب نزول</span></div>
     <div class="small" style="text-align:center">اضغط على أي آية عشان يظهر تفسيرها تحتها</div>
-    <div class="legend"><span><i></i>لسه</span><span><i class="ok"></i>حافظها</span><span><i class="rev"></i>محتاجة مراجعة</span></div>
     <div id="list"></div>
   </section>
 
   <section id="paneT" class="card" hidden>
-    <div class="asrbox stack">
-      <label>طريقة التعرف على الصوت
-        <select id="engine">
-          <option value="chrome" selected>Chrome العادي (من غير تحميل)</option>
-          <option value="tiny">نموذج القرآن الخفيف (حوالي ٤٠ ميجا)</option>
-          <option value="base">نموذج القرآن الدقيق (حوالي ١٠٠ ميجا، أبطأ)</option>
-        </select>
-      </label>
-      <div class="small" id="asrNote" hidden></div>
-      <button class="btn" id="asrLoad" hidden></button>
+    <div class="asrbox">
+      <details id="asrDet">
+        <summary><b>🎙 التعرف على الصوت</b> <span class="small" id="engSum"></span></summary>
+        <div class="stack" style="margin-top:10px">
+          <label>اختار الطريقة
+            <select id="engine">
+              <option value="chrome" selected>Chrome العادي (من غير تحميل)</option>
+              <option value="tiny">نموذج القرآن الخفيف (حوالي ٤٠ ميجا)</option>
+              <option value="base">نموذج القرآن الدقيق (حوالي ١٠٠ ميجا، أبطأ)</option>
+            </select>
+          </label>
+          <div class="small" id="asrNote" hidden></div>
+          <button class="btn" id="asrLoad" hidden></button>
+        </div>
+      </details>
     </div>
     <div id="testBox" class="stack"></div>
   </section>
@@ -307,7 +333,7 @@ body.adk-mode{padding-bottom:40px}
     <input type="file" id="adkFile" accept="audio/*,.mp3,.m4a" hidden>
   </section>
 
-  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التفسير الميسر من مجمع الملك فهد لطباعة المصحف الشريف. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس.</div>
+  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التفسير الميسر من مجمع الملك فهد لطباعة المصحف الشريف. أسباب النزول (الصحيح منها) من كتاب «صحيح أسباب النزول» لإبراهيم العلي، عبر مجموعة بيانات مفتوحة. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس.</div>
 </div>
 
 <div class="player">
@@ -463,11 +489,13 @@ function renderList(){
   for(var i=1;i<=cur.count;i++){
     var a=ayah(i),inR=i>=rangeFrom()&&i<=rangeTo();
     h+='<div class="ay'+(inR?'':' out')+'" data-i="'+i+'" id="ay'+i+'">'
-      +'<span class="dot '+stat(cur.num,i)+'" id="dot'+i+'"><b>'+ar(i)+'</b></span>'
+      +'<span class="side"><span class="dot '+stat(cur.num,i)+'" id="dot'+i+'"><b>'+ar(i)+'</b></span><span class="sb" id="sb'+i+'" title="ليها سبب نزول" hidden>📜</span></span>'
       +'<div class="bd"><span class="txt">'+esc(a.t)+'</span>'
-      +'<div class="taf"><div class="taf-h"><span>📖 التفسير الميسر</span><button class="btn" data-hear="'+i+'">🔊 اسمع الآية</button></div><div class="taf-t" id="tt'+i+'"></div></div></div></div>';
+      +'<div class="taf"><div class="taf-h"><div class="tt" role="group"><button data-ttab="t" aria-pressed="true">📖 التفسير</button><button data-ttab="s" id="tbs'+i+'" aria-pressed="false" hidden>📜 سبب النزول</button></div><button class="btn" data-hear="'+i+'" aria-label="اسمع الآية" title="اسمع الآية">🔊</button></div>'
+      +'<div class="taf-t" id="tt'+i+'"></div><div class="taf-s" id="ts'+i+'" hidden></div>'
+      +'<div class="taf-src" id="tsrc'+i+'">التفسير الميسر — مجمع الملك فهد</div></div></div></div>';
   }
-  $('#list').innerHTML=h;
+  $('#list').innerHTML=h;markAsb();
 }
 function updateDot(i){var d=$('#dot'+i);if(d)d.className='dot '+stat(cur.num,i)}
 function highlight(i){
@@ -498,11 +526,56 @@ function tafFill(i){
     box.textContent='تعذر تحميل التفسير. افتح التطبيق مرة وأنت متصل بالإنترنت.';
   });
 }
+/* أسباب النزول: only the authentic narrations (كتاب «صحيح أسباب النزول»), so most ayahs of the juz have none */
+var ASB=null,asbP=null;
+function loadAsbab(){
+  if(ASB)return Promise.resolve(ASB);
+  if(!asbP)asbP=fetch('asbab-nuzul.json').then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()})
+    .then(function(j){ASB=j;markAsb();return j},function(e){asbP=null;throw e});
+  return asbP;
+}
+function asbFor(num,i){
+  var L=ASB&&ASB[num];if(!L)return [];
+  return L.filter(function(e){return e.a.indexOf(i)>-1});
+}
+function markAsb(){
+  if(!ASB||!cur)return;
+  for(var i=1;i<=cur.count;i++){
+    var has=asbFor(cur.num,i).length>0,sb=$('#sb'+i),tb=$('#tbs'+i);
+    if(sb)sb.hidden=!has;if(tb)tb.hidden=!has;
+  }
+}
+function ayahSpan(a){return a.length===1?'آية '+ar(a[0]):'الآيات من '+ar(a[0])+' إلى '+ar(a[a.length-1])}
+function asbHtml(num,i){
+  var es=asbFor(num,i),h='',k=0,tot=0;
+  es.forEach(function(e){tot+=e.o.length});
+  es.forEach(function(e){
+    e.o.forEach(function(t){
+      k++;
+      var body=esc(t).split(/\n\s*\n/).map(function(x){
+        return '<p>'+x.replace(/\{([^}]*)\}/g,'<span class="qv">﴿$1﴾</span>')+'</p>';
+      }).join('');
+      h+='<div class="occ"><div class="occ-n">'+(tot>1?'الرواية '+ar(k)+' من '+ar(tot)+' — ':'')+'نزلت في '+ayahSpan(e.a)+'</div>'+body+'</div>';
+    });
+  });
+  return h;
+}
+function tafTab(el,which){
+  var i=el.getAttribute('data-i'),isS=which==='s';
+  el.querySelectorAll('[data-ttab]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-ttab')===which)});
+  $('#tt'+i).hidden=isS;$('#ts'+i).hidden=!isS;
+  $('#tsrc'+i).textContent=isS?'المصدر: صحيح أسباب النزول — إبراهيم العلي (الروايات الصحيحة فقط)':'التفسير الميسر — مجمع الملك فهد';
+  if(isS){
+    var box=$('#ts'+i),num=cur.num,n=parseInt(i,10);
+    loadAsbab().then(function(){if(cur&&cur.num===num)box.innerHTML=asbHtml(num,n)||'<span class="small">مفيش سبب نزول صحيح للآية دي.</span>'},
+      function(){box.innerHTML='<span class="small">تعذر تحميل أسباب النزول. افتح التطبيق مرة وأنت متصل بالإنترنت.</span>'});
+  }
+}
 function toggleTafsir(el){
   var i=parseInt(el.getAttribute('data-i'),10),was=el.classList.contains('open');
   document.querySelectorAll('.ay.open').forEach(function(e){e.classList.remove('open')});
   if(was)return;
-  el.classList.add('open');
+  el.classList.add('open');tafTab(el,'t');
   var box=$('#tt'+i);
   if(box&&!box.textContent){box.className='taf-t mut';box.textContent='جاري تحميل التفسير...'}
   tafFill(i);
@@ -775,8 +848,18 @@ function asrLiveText(R){
   if(R.pending)return '🔎 نموذج القرآن بيراجع آخر جزء قريته...';
   return R.useSR?'':'الكلام بيتعلّم بعد كل وقفة قصيرة.';
 }
+function engSum(v){
+  var N={chrome:'Chrome العادي',tiny:'نموذج القرآن الخفيف',base:'نموذج القرآن الدقيق'},x=N[v]||'';
+  if(MODELS[v]&&CAN_REC){
+    if(ASR.model===v&&ASR.state==='ready')x+=' ✓';
+    else if(ASR.model===v&&ASR.state==='loading')x+=' — بيتحمّل '+ar(asrPct())+'٪';
+    else if(ASR.model===v&&ASR.state==='error')x+=' — تعذر التحميل';
+    else x+=asrCached(v)?'':' — محتاج تحميل';
+  }
+  $('#engSum').textContent='— '+x;
+}
 function updateAsrUI(){
-  var v=$('#engine').value,note=$('#asrNote'),btn=$('#asrLoad');
+  var v=$('#engine').value,note=$('#asrNote'),btn=$('#asrLoad');engSum(v);
   var lv=$('#asrLive');if(lv&&T&&T.R)lv.textContent=asrLiveText(T.R);
   var fin=$('#asrFin');if(fin&&T&&T.R)fin.textContent=finText(T.R);
   if(!MODELS[v]){note.hidden=true;btn.hidden=true;return}
@@ -1202,6 +1285,7 @@ function switchTab(t){
   $('#tabH').setAttribute('aria-selected',t==='h');
   $('#tabT').setAttribute('aria-selected',t==='t');
   $('#tabA').setAttribute('aria-selected',t==='a');
+  saveUI({tab:t});
   document.body.classList.toggle('adk-mode',t==='a');
   if(t!=='t')killListen();
   if(t==='t'){
@@ -1216,7 +1300,9 @@ document.querySelectorAll('.tab').forEach(function(b){
 /* one-line summary of the folded repeat settings */
 function moreSum(){
   function t(id){var e=$('#'+id);return e.options[e.selectedIndex].text}
-  var parts=isSobhy()?['السورة '+t('link')]:['كل آية '+t('rep'),'ربط '+t('link')];
+  var NAMES={alafasy:'العفاسي',husary:'الحصري',minshawi:'المنشاوي',sobhy:'إسلام صبحي'};
+  var parts=[NAMES[voice()]||'']; 
+  if(isSobhy())parts.push('السورة '+t('link'));else parts.push('كل آية '+t('rep'),'ربط '+t('link'));
   parts.push(t('speed'));if($('#echo').value==='1')parts.push('ترديد');
   $('#moreSum').textContent='— '+parts.join(' · ');
 }
@@ -1268,6 +1354,8 @@ $('#to').addEventListener('change',function(){
 $('#list').addEventListener('click',function(e){
   var hear=e.target.closest('[data-hear]');
   if(hear){playOne(parseInt(hear.getAttribute('data-hear'),10));return}
+  var tt=e.target.closest('[data-ttab]');
+  if(tt){tafTab(tt.closest('.ay'),tt.getAttribute('data-ttab'));return}
   if(e.target.closest('.taf'))return; /* reading or selecting the tafsir text must not close it */
   var el=e.target.closest('.ay');if(!el)return;
   if($('#hide').checked){
@@ -1487,6 +1575,8 @@ var startSurah=meta(ui.s)?ui.s:114;
 $('#surah').value=startSurah;
 loadSurah(startSurah);
 adkInit();
+loadAsbab().catch(function(){});
+if(ui.tab==='t'||ui.tab==='a')switchTab(ui.tab);
 /* offline: cache the app itself so it opens without internet */
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
   navigator.serviceWorker.register('sw.js').catch(function(){});
