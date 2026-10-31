@@ -82,6 +82,7 @@ select:disabled{opacity:.5}
 .resA{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 details summary{cursor:pointer}
 .hintbox{background:var(--hl);border-radius:10px;padding:6px 10px}
+.asrbox{padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
 .hintbox b{font-family:var(--quran);font-size:1.35rem;font-weight:400;color:var(--fg)}
 .player{
   position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
@@ -155,10 +156,21 @@ details summary{cursor:pointer}
   </section>
 
   <section id="paneT" class="card" hidden>
+    <div class="asrbox stack">
+      <label>طريقة التعرف على الصوت
+        <select id="engine">
+          <option value="chrome" selected>Chrome العادي (من غير تحميل)</option>
+          <option value="tiny">نموذج القرآن الخفيف (حوالي ٤٠ ميجا)</option>
+          <option value="base">نموذج القرآن الدقيق (حوالي ١٠٠ ميجا، أبطأ)</option>
+        </select>
+      </label>
+      <div class="small" id="asrNote" hidden></div>
+      <button class="btn" id="asrLoad" hidden></button>
+    </div>
     <div id="testBox" class="stack"></div>
   </section>
 
-  <div class="small">النص بالرسم العثماني من alquran.cloud. صوت العفاسي من cdn.islamic.network وصوت إسلام صبحي من way2quran.com. التطبيق يحتاج إنترنت، والتقدم بيتحفظ على الموبايل ده بس.</div>
+  <div class="small">النص بالرسم العثماني من alquran.cloud. صوت العفاسي من cdn.islamic.network وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التطبيق يحتاج إنترنت، والتقدم بيتحفظ على الموبايل ده بس.</div>
 </div>
 
 <div class="player">
@@ -210,7 +222,7 @@ function meta(s){return SURAHS.filter(function(x){return x[0]===s})[0]}
 function countStat(s,v){var c=0,n=meta(s)[2];for(var i=1;i<=n;i++)if(stat(s,i)===v)c++;return c}
 
 /* ---------- Settings ---------- */
-var SETTINGS=['voice','rep','link','speed','echo'];
+var SETTINGS=['voice','rep','link','speed','echo','engine'];
 function loadUI(){try{return JSON.parse(localStorage.getItem('hifz-ui')||'{}')||{}}catch(e){return {}}}
 function saveUI(patch){
   try{var u=loadUI();for(var k in patch)u[k]=patch[k];localStorage.setItem('hifz-ui',JSON.stringify(u))}catch(e){}
@@ -513,12 +525,179 @@ function align(X,sp){
 function lastOkOf(res,exp){var k=-1;for(var q=0;q<res.length;q++)if(res[q]&&exp[q])k=q;return k}
 function allOk(res){for(var q=0;q<res.length;q++)if(res[q]!==1)return false;return true}
 
-function isListening(){return !!(T&&T.R&&T.R.listen)}
+/* ---- Quran recitation model (Whisper fine-tuned on recitation, runs on the device in asr-worker.js) ----
+   Chrome's recognizer is a general Arabic model: fast but often marks correct words as missed.
+   The Quran model understands recitation much better but works on whole phrases, so:
+   - computer: both run together; Chrome marks words instantly, the model re-checks behind it.
+   - Android: Chrome cannot recognize while the page records the mic (Chromium bug 41403126),
+     so the model runs alone and marks each phrase after the reciter pauses (usually each ayah). */
+var ANDROID=/Android/i.test(navigator.userAgent);
+var MODELS={
+  tiny:{id:'Sharjeelbaig/whisper-tiny-ar-quran-onnx',mb:40},
+  base:{id:'nael239/tasme3-whisper-base-ar-quran-web',mb:103}
+};
+var CAN_REC=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&(window.AudioContext||window.webkitAudioContext)&&window.Worker);
+function engine(){var v=$('#engine').value;return (v!=='chrome'&&CAN_REC&&MODELS[v])?v:'chrome'}
+var ASR={w:null,model:null,state:'idle',files:{},err:'',seq:0,jobs:{}};
+function asrCached(m){try{return localStorage.getItem('hifz-asr-'+m)==='1'}catch(e){return false}}
+function asrWorker(){
+  if(ASR.w)return ASR.w;
+  try{ASR.w=new Worker('asr-worker.js',{type:'module'})}
+  catch(e){ASR.state='error';ASR.err='المتصفح ده مش بيقدر يشغّل النموذج.';return null}
+  ASR.w.onmessage=asrMsg;
+  ASR.w.onerror=function(e){
+    ASR.state='error';ASR.err='تعذر تشغيل النموذج'+(e&&e.message?' ('+e.message+')':'')+'.';
+    if(e&&e.preventDefault)e.preventDefault();
+    ASR.w=null;failJobs();updateAsrUI();
+  };
+  return ASR.w;
+}
+function asrLoad(m){
+  if(!MODELS[m])return;
+  if(ASR.model===m&&(ASR.state==='ready'||ASR.state==='loading'))return;
+  var w=asrWorker();if(!w){updateAsrUI();return}
+  ASR.model=m;ASR.state='loading';ASR.files={};ASR.err='';
+  w.postMessage({type:'load',model:MODELS[m].id});updateAsrUI();
+}
+function asrPct(){var l=0,t=0;for(var f in ASR.files){l+=ASR.files[f].l;t+=ASR.files[f].t}return t?Math.min(99,Math.floor(l/t*100)):0}
+function asrMsg(ev){
+  var m=ev.data,j;
+  if(m.type==='progress'){if(m.total)ASR.files[m.file]={l:m.loaded||0,t:m.total};updateAsrUI();return}
+  if(m.type==='ready'){
+    if(ASR.model&&MODELS[ASR.model].id===m.model){ASR.state='ready';try{localStorage.setItem('hifz-asr-'+ASR.model,'1')}catch(e){}}
+    updateAsrUI();return;
+  }
+  if(m.type==='text'){j=ASR.jobs[m.id];delete ASR.jobs[m.id];if(j)j(m.text,true);return}
+  if(m.type==='error'){
+    if(m.id!=null){j=ASR.jobs[m.id];delete ASR.jobs[m.id];if(j)j('',false)}
+    if(ASR.state==='loading'){
+      ASR.state='error';
+      ASR.err='تعذر تحميل النموذج'+(navigator.onLine===false?' (مفيش إنترنت)':'')+'.';
+      failJobs();
+    }
+    updateAsrUI();
+  }
+}
+function failJobs(){
+  var js=ASR.jobs;ASR.jobs={};for(var k in js)js[k]('',false);
+  /* the model is the only recognizer running (Android): stop and say why instead of recording for nothing */
+  var R=T&&T.R;
+  if(R&&R.listen&&R.useW&&!R.useSR){
+    R.useW=false;T.msg=ASR.err+' اختار "Chrome العادي" من فوق وجرّب تاني.';finishListen();
+  }
+}
+function asrJob(pcm,done){
+  if(ASR.state==='error'||!ASR.model){done('',false);return}
+  var w=asrWorker();if(!w){done('',false);return}
+  var id=++ASR.seq;ASR.jobs[id]=done;
+  w.postMessage({type:'asr',id:id,model:MODELS[ASR.model].id,audio:pcm},[pcm.buffer]);
+}
+function asrLiveText(R){
+  if(!R||!R.useW)return '';
+  if(ASR.state==='loading')return '⏳ نموذج القرآن بيتحمّل '+ar(asrPct())+'٪ — كمّل قراية، هيلحقك';
+  if(ASR.state==='error')return ASR.err+' شغّال بـ Chrome بس.';
+  if(R.pending)return '🔎 نموذج القرآن بيراجع آخر جزء قريته...';
+  return R.useSR?'':'الكلام بيتعلّم بعد كل وقفة قصيرة.';
+}
+function updateAsrUI(){
+  var v=$('#engine').value,note=$('#asrNote'),btn=$('#asrLoad');
+  var lv=$('#asrLive');if(lv&&T&&T.R)lv.textContent=asrLiveText(T.R);
+  var fin=$('#asrFin');if(fin&&T&&T.R)fin.textContent=finText(T.R);
+  if(!MODELS[v]){note.hidden=true;btn.hidden=true;return}
+  note.hidden=false;
+  if(!CAN_REC){note.textContent='المتصفح ده مش بيدعم تشغيل النموذج، هيستخدم Chrome العادي.';btn.hidden=true;return}
+  var mine=ASR.model===v,s;
+  if(mine&&ASR.state==='ready')s='✓ النموذج جاهز. ';
+  else if(mine&&ASR.state==='loading')s='⏳ بيتحمّل النموذج... '+ar(asrPct())+'٪ ';
+  else if(mine&&ASR.state==='error')s=ASR.err+' ';
+  else s=asrCached(v)?'النموذج متحمّل قبل كده على الجهاز ده. ':'هيتحمّل حوالي '+ar(MODELS[v].mb)+' ميجا مرة واحدة بس (الأفضل على واي فاي). ';
+  s+=ANDROID?'على الموبايل الكلام بيتعلّم بعد كل وقفة (غالباً آخر كل آية) مش كلمة بكلمة.'
+            :'Chrome بيعلّم الكلمات على طول، والنموذج بيراجع وراه ويصلّح اللي Chrome فوّته.';
+  note.textContent=s;
+  btn.hidden=mine&&(ASR.state==='ready'||ASR.state==='loading');
+  btn.textContent=mine&&ASR.state==='error'?'↻ جرّب التحميل تاني':(asrCached(v)?'⚡ جهّز النموذج':'⬇ حمّل النموذج دلوقتي');
+}
+
+/* ---- microphone capture for the model: 16 kHz mono, cut into phrases at pauses ---- */
+function startCapture(R){
+  navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(stream){
+    if(!R.listen||!T||T.R!==R){stream.getTracks().forEach(function(t){t.stop()});return}
+    var AC=window.AudioContext||window.webkitAudioContext,ctx=new AC();
+    var src=ctx.createMediaStreamSource(stream),proc=ctx.createScriptProcessor(2048,1,1),mute=ctx.createGain();
+    mute.gain.value=0;src.connect(proc);proc.connect(mute);mute.connect(ctx.destination);
+    var C={stream:stream,ctx:ctx,proc:proc,rate:ctx.sampleRate,buf:[],len:0,speech:0,sil:0,noise:0.01,pre:[]};
+    R.cap=C;
+    proc.onaudioprocess=function(e){if(R.listen&&R.cap===C)capFrame(R,C,e.inputBuffer.getChannelData(0))};
+    if(ctx.state==='suspended')ctx.resume();
+  },function(err){
+    if(!T||T.R!==R)return;
+    var denied=err&&(err.name==='NotAllowedError'||err.name==='SecurityError');
+    if(R.useSR){R.useW=false;return} /* keep going with Chrome alone */
+    R.fatal=true;
+    T.msg=denied?'الميكروفون مش مسموح. اضغط على القفل جنب اللينك واسمح بالميكروفون، وجرّب تاني.':'تعذر تشغيل الميكروفون.';
+    finishListen();
+  });
+}
+function capFrame(R,C,x){
+  var f=new Float32Array(x),e=0,i;
+  for(i=0;i<f.length;i++)e+=f[i]*f[i];
+  var rms=Math.sqrt(e/f.length),dur=f.length/C.rate;
+  /* noise floor: follows quiet frames quickly, loud ones very slowly */
+  C.noise=rms<C.noise?C.noise*0.7+rms*0.3:C.noise*0.998+rms*0.002;
+  var voiced=rms>C.noise*2.5+0.003;
+  if(voiced){R.last=R.act=Date.now();R.hint=''}
+  if(!C.len){
+    if(!voiced){C.pre.push(f);if(C.pre.length>6)C.pre.shift();return}
+    for(i=0;i<C.pre.length;i++){C.buf.push(C.pre[i]);C.len+=C.pre[i].length}
+    C.pre=[];C.speech=0;C.sil=0;
+  }
+  C.buf.push(f);C.len+=f.length;
+  if(voiced){C.speech+=dur;C.sil=0}else C.sil+=dur;
+  if((C.sil>=0.6&&C.speech>=0.5)||C.len/C.rate>=20)flushChunk(R,C);
+  else if(C.sil>=1.5){C.buf=[];C.len=0} /* a short noise, not speech */
+}
+function resample16k(a,rate){
+  if(rate===16000)return a;
+  var r=rate/16000,n=Math.floor(a.length/r),out=new Float32Array(n);
+  for(var i=0;i<n;i++){
+    var s=Math.floor(i*r),t=Math.min(a.length,Math.floor((i+1)*r)),acc=0;
+    for(var k=s;k<t;k++)acc+=a[k];
+    out[i]=t>s?acc/(t-s):a[s];
+  }
+  return out;
+}
+function flushChunk(R,C){
+  var sp=C.speech;C.speech=0;C.sil=0;
+  if(!C.len)return;
+  var a=new Float32Array(C.len),o=0;
+  C.buf.forEach(function(b){a.set(b,o);o+=b.length});C.buf=[];C.len=0;
+  if(sp<0.3||!R.useW)return;
+  var idx=R.parts.length;R.parts.push('');R.pending++;
+  asrJob(resample16k(a,C.rate),function(text,ok){
+    R.pending--;R.parts[idx]=ok?text:'';
+    if(!T||T.R!==R)return;
+    R.wheard=R.parts.filter(Boolean).join(' ');
+    if(R.listen){if(ok&&text)R.act=Date.now();liveUpdate(R);updateAsrUI()}
+    else if(R.finalizing){if(!R.pending)completeFinish(R);else updateAsrUI()}
+  });
+}
+function stopCapture(R,flush){
+  var C=R.cap;if(!C)return;
+  R.cap=null;C.proc.onaudioprocess=null;
+  if(flush)flushChunk(R,C);
+  try{C.proc.disconnect()}catch(e){}
+  C.stream.getTracks().forEach(function(t){t.stop()});
+  try{C.ctx.close()}catch(e){}
+}
+
+/* ---- listening session ---- */
+function isListening(){return !!(T&&T.R&&(T.R.listen||T.R.finalizing))}
 function killListen(){
   clearInterval(hintTimer);hintTimer=null;
-  if(isListening()){
-    var R=T.R;R.listen=false;R.token++;
-    var r=R.rec;R.rec=null;try{if(r)r.abort()}catch(e){}
+  if(T&&T.R){
+    var R=T.R;
+    if(R.listen){R.listen=false;R.token++;clearTimeout(R.tick);R.tick=0;var r=R.rec;R.rec=null;try{if(r)r.abort()}catch(e){}}
+    stopCapture(R,false);R.finalizing=false;
   }
   if(state!=='playing')wake(false);
 }
@@ -540,33 +719,38 @@ function startTest(mode){
   renderTest();
 }
 
-/* ---- speech recognition, restarted across Android's short-silence cut-offs ---- */
 function startListen(){
-  if(!SR){T.msg='المتصفح ده مش بيدعم التعرف على الصوت. افتح اللينك من Chrome على أندرويد.';renderTest();return}
-  stopAll();wake(true);
-  var tok=(T.R?T.R.token:0)+1;
-  T.R={token:tok,listen:true,fatal:false,heard:'',acc:'',hint:'',hintN:1,t0:Date.now(),last:Date.now(),rec:null,
-       live:align(T.X,[]),tick:0,tries:0};
+  var eng=engine(),useW=eng!=='chrome',useSR=!!SR&&(!useW||!ANDROID);
+  if(!useSR&&!useW){T.msg='المتصفح ده مش بيدعم التعرف على الصوت. افتح اللينك من Chrome، أو اختار نموذج القرآن.';renderTest();return}
+  killListen();stopAll();wake(true);
+  var tok=(T.R?T.R.token:0)+1,now=Date.now();
+  T.R={token:tok,listen:true,fatal:false,heard:'',acc:'',hint:'',hintN:1,t0:now,last:now,act:now,rec:null,
+       live:align(T.X,[]),tick:0,tries:0,useSR:useSR,useW:useW,parts:[],pending:0,wheard:'',cap:null,finalizing:false};
   T.msg='';T.res=null;T.grades=null;T.peek=false;
-  session(T.R,tok);
+  if(useW){asrLoad(eng);startCapture(T.R)}
+  if(useSR)session(T.R,tok);
   clearInterval(hintTimer);
   hintTimer=setInterval(function(){
     var R=T&&T.R;if(!R||!R.listen)return;
-    if(Date.now()-R.last>5000){
+    var now=Date.now();
+    /* stop on its own after a long silence (Chrome's own restarts handle this when it runs) */
+    if(!R.useSR&&(now-R.act>25000||now-R.t0>1800000)){finishListen();return}
+    if(now-R.last>5000&&!R.pending){
       var from=lastOkOf(R.live,T.exp)+1,idx=[];
       for(var q=from;q<T.exp.length&&idx.length<R.hintN;q++)if(T.exp[q])idx.push(q);
       if(idx.length){
         R.hint=idx.map(function(q){return T.E[q].w}).join(' ');
         R.hintAyah=T.E[idx[0]].i;
-        R.hintN=Math.min(3,R.hintN+1);R.last=Date.now();renderTest();
+        R.hintN=Math.min(3,R.hintN+1);R.last=now;renderTest();
       }
     }
   },1000);
   renderTest();
 }
+/* Chrome's recognizer, restarted across Android's short-silence cut-offs */
 function session(R,tok){
   var me=T,rec;
-  try{rec=new SR()}catch(e){R.fatal=true;T.msg='تعذر تشغيل التعرف على الصوت.';finishListen();return}
+  try{rec=new SR()}catch(e){srFail(R,'تعذر تشغيل التعرف على الصوت.');return}
   rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=5;
   R.rec=rec;
   function mine(){return T===me&&T.R===R&&R.token===tok}
@@ -578,7 +762,7 @@ function session(R,tok){
       var t=bestAlt(ev.results[k]);if(!t)continue;
       if(s&&t.indexOf(s)===0)s=t;else if(s.indexOf(t)===-1)s=(s+' '+t).trim();
     }
-    R.heard=(R.acc+' '+s).trim();R.last=Date.now();R.hint='';R.hintN=1;
+    R.heard=(R.acc+' '+s).trim();R.last=R.act=Date.now();R.hint='';R.hintN=1;
     liveUpdate(R);
   };
   rec.onerror=function(ev){
@@ -588,7 +772,7 @@ function session(R,tok){
       'audio-capture':'مفيش ميكروفون شغال على الموبايل.',
       'network':'التعرف على الصوت محتاج إنترنت.',
       'language-not-supported':'التعرف على الصوت بالعربي مش متاح على الجهاز ده.'};
-    if(fatal[ev.error]){R.fatal=true;T.msg=fatal[ev.error]}
+    if(fatal[ev.error]){R.fatal=true;R.fatalMsg=fatal[ev.error]}
   };
   rec.onend=function(){
     if(!mine())return;
@@ -596,16 +780,23 @@ function session(R,tok){
     if(!R.listen)return;
     R.acc=R.heard;
     var now=Date.now();
+    if(R.fatal){srFail(R,R.fatalMsg);return}
     /* restart right away so as few words as possible are lost between sessions */
-    if(!R.fatal&&now-R.t0<1800000&&now-R.last<25000)session(R,tok);
+    if(now-R.t0<1800000&&now-R.act<25000)session(R,tok);
     else finishListen();
   };
   try{rec.start();R.tries=0}catch(e){
     R.rec=null;
     /* the previous session may not have released the mic yet: retry shortly */
     if(++R.tries<=4)setTimeout(function(){if(mine()&&R.listen)session(R,tok)},120*R.tries);
-    else{R.fatal=true;T.msg='تعذر تشغيل الميكروفون.';finishListen()}
+    else srFail(R,'تعذر تشغيل الميكروفون.');
   }
+}
+/* Chrome's recognizer gave up: carry on with the model alone if it is running */
+function srFail(R,msg){
+  R.useSR=false;
+  if(R.useW&&ASR.state!=='error')return;
+  R.fatal=true;T.msg=msg||'';finishListen();
 }
 /* Pick the recognizer alternative that fits the expected text best (the top one by default) */
 function bestAlt(r){
@@ -618,13 +809,21 @@ function bestAlt(r){
   }
   return best;
 }
+/* A word counts as recited if either recognizer heard it in its place */
+function combined(R){
+  var a=align(T.X,spoken(R.heard));
+  if(!R.wheard)return a;
+  var b=align(T.X,spoken(R.wheard));
+  for(var q=0;q<a.length;q++)if(b[q])a[q]=1;
+  return a;
+}
 /* Re-align and redraw at most every ~60 ms: interim results can arrive many times a second */
 function liveUpdate(R){
   if(R.tick)return;
   R.tick=setTimeout(function(){
     R.tick=0;
     if(!T||T.R!==R||!R.listen)return;
-    R.live=align(T.X,spoken(R.heard));
+    R.live=combined(R);
     if(allOk(R.live))finishListen();else renderTest();
   },60);
 }
@@ -633,13 +832,26 @@ function finishListen(){
   clearInterval(hintTimer);hintTimer=null;
   R.listen=false;R.token++;clearTimeout(R.tick);R.tick=0;
   var r=R.rec;R.rec=null;try{if(r)r.abort()}catch(e){}
+  stopCapture(R,true);
   if(state!=='playing')wake(false);
-  if(!R.heard){
+  R.live=combined(R);
+  /* wait for the model to finish the last phrases, unless everything is already marked */
+  if(R.useW&&R.pending>0&&!allOk(R.live)){R.finalizing=true;renderTest();return}
+  completeFinish(R);
+}
+function finText(R){
+  if(ASR.state==='loading')return 'النموذج لسه بيتحمّل ('+ar(asrPct())+'٪)، وبعدها هيراجع اللي قريته.';
+  return 'بيراجع '+(R.pending===1?'آخر جزء':'آخر '+ar(R.pending)+' أجزاء')+' قريتهم...';
+}
+function completeFinish(R){
+  if(!T||T.R!==R)return;
+  R.finalizing=false;
+  if(!R.heard&&!R.wheard){
     if(!T.msg)T.msg='ما سمعتش صوت. قرّب الموبايل من بُقك وجرّب تاني.';
     T.res=null;T.R=null;
   }else{
-    T.res=align(T.X,spoken(R.heard));
-    T.heard=R.heard;
+    T.res=combined(R);
+    T.heard=R.heard;T.wheard=R.wheard;
     T.grades={};
     perAyah(T.res).forEach(function(a){T.grades[a.i]=a.ok===a.n?'ok':'rev'});
   }
@@ -718,11 +930,24 @@ function renderTest(){
       h+='<div class="txt'+(a.i===curAyah?' curA':'')+'"'+(a.i===curAyah?' id="curA"':'')+'>'
         +segHtml(R.live,a.from,a.to,true,lastOk)+' <span class="num">﴿'+ar(a.i)+'﴾</span></div>';
     });
+    if(R.useW)h+='<div class="small" id="asrLive">'+esc(asrLiveText(R))+'</div>';
     if(R.hint)h+='<div class="hintbox small">وقفت؟ كمّل من (آية '+ar(R.hintAyah)+'): <b>'+esc(R.hint)+'</b></div>';
     h+='<div class="row"><button class="btn pri" data-act="finishMic">انتهيت</button>'
       +'<button class="btn" data-act="cancelMic">إلغاء</button></div>';
     box.innerHTML=h;
     var c=$('#curA');if(c)c.scrollIntoView({block:'nearest'});
+    return;
+  }
+
+  /* 2b) waiting for the Quran model to check the last phrases */
+  if(R&&R.finalizing){
+    h+='<div class="live">⏳ نموذج القرآن بيراجع التسميع</div><div class="small" id="asrFin">'+esc(finText(R))+'</div>';
+    perAyah(R.live).forEach(function(a){
+      h+='<div class="txt">'+segHtml(R.live,a.from,a.to,false,-1)+' <span class="num">﴿'+ar(a.i)+'﴾</span></div>';
+    });
+    h+='<div class="row"><button class="btn" data-act="skipW">اعرض النتيجة دلوقتي</button>'
+      +'<button class="btn" data-act="cancelMic">إلغاء</button></div>';
+    box.innerHTML=h;
     return;
   }
 
@@ -743,7 +968,10 @@ function renderTest(){
         +'</div>';
     });
     h+='<div class="small">التعرف على الصوت ممكن يعلّم كلمة سليمة بالأحمر. اضغط على زرار التقييم جنب أي آية لو عايز تغيّره قبل الحفظ.</div>'
-      +'<details class="small"><summary>اللي التطبيق سمعه</summary><div class="heard">'+esc(T.heard||'')+'</div></details>'
+      +'<details class="small"><summary>اللي التطبيق سمعه</summary>'
+        +(T.heard?'<div class="heard">'+(T.wheard?'<b>Chrome:</b> ':'')+esc(T.heard)+'</div>':'')
+        +(T.wheard?'<div class="heard"><b>نموذج القرآن:</b> '+esc(T.wheard)+'</div>':'')
+      +'</details>'
       +'<button class="btn pri wide" data-act="save">احفظ التقييم</button>'
       +'<div class="row"><button class="btn" data-act="mic">🎤 سمّع تاني</button>'
       +'<button class="btn" data-act="again">اختيار تاني</button></div>';
@@ -759,8 +987,8 @@ function renderTest(){
     h+='<div class="hintbox small">أول الكلام: <b>'+esc(shownW)+'</b></div>';
   }
   if(T.msg)h+='<div class="err">'+esc(T.msg)+'</div>';
-  h+=(SR?'<button class="btn pri wide" data-act="mic">🎤 ابدأ التسميع واقرا كله على بعض</button>'
-         :'<div class="err">التسميع بالصوت محتاج Chrome على أندرويد.</div>')
+  h+=(SR||engine()!=='chrome'?'<button class="btn pri wide" data-act="mic">🎤 ابدأ التسميع واقرا كله على بعض</button>'
+         :'<div class="err">التسميع بالصوت محتاج Chrome، أو اختار "نموذج القرآن" فوق.</div>')
     +'<div class="row"><button class="btn" data-act="hint">💡 أول كلمة</button>'
     +'<button class="btn" data-act="peek">'+(T.peek?'🙈 خبّي':'👁 بص على النص')+'</button>'
     +'<button class="btn" data-act="again">رجوع</button></div>';
@@ -775,6 +1003,7 @@ function testClick(e){
   if(act==='mic'){T.done=null;startListen()}
   else if(act==='finishMic')finishListen();
   else if(act==='cancelMic'){killListen();T.R=null;T.msg='';renderTest()}
+  else if(act==='skipW'){if(T.R&&T.R.finalizing)completeFinish(T.R)}
   else if(act==='hint'){
     var n=0;for(var q=0;q<T.E.length;q++)if(T.E[q].e)n++;
     T.shown=Math.min(T.E.length,(T.shown||0)+1);
@@ -797,7 +1026,10 @@ function switchTab(t){
   $('#paneH').hidden=!h;$('#paneT').hidden=h;
   $('#tabH').setAttribute('aria-selected',h);
   $('#tabT').setAttribute('aria-selected',!h);
-  if(!h)renderTest();else killListen();
+  if(!h){
+    var e=engine();if(e!=='chrome'&&asrCached(e))asrLoad(e);
+    updateAsrUI();renderTest();
+  }else killListen();
 }
 document.querySelectorAll('.tab').forEach(function(b){
   b.addEventListener('click',function(){switchTab(b.getAttribute('data-tab'))});
@@ -815,6 +1047,11 @@ SETTINGS.forEach(function(id){
     var p={};p[id]=this.value;saveUI(p);
     if(id==='voice'){stopAll();updateVoiceUI()}
     if(id==='speed'){audio.defaultPlaybackRate=rate();audio.playbackRate=rate()}
+    if(id==='engine'){
+      if(isListening()){killListen();T.R=null}
+      if(MODELS[this.value]&&asrCached(this.value)&&CAN_REC)asrLoad(this.value);
+      updateAsrUI();renderTest();
+    }
   });
 });
 $('#hide').addEventListener('change',function(){
@@ -846,6 +1083,7 @@ $('#list').addEventListener('click',function(e){
   playOne(parseInt(el.getAttribute('data-i'),10));
 });
 $('#testBox').addEventListener('click',testClick);
+$('#asrLoad').addEventListener('click',function(){var e=engine();if(e!=='chrome')asrLoad(e)});
 $('#bPlay').addEventListener('click',playRange);
 $('#bPause').addEventListener('click',pauseAudio);
 $('#bNext').addEventListener('click',nextAyah);
@@ -859,7 +1097,7 @@ SETTINGS.forEach(function(id){
   for(var k=0;k<sel.options.length;k++)if(sel.options[k].value===String(ui[id])){sel.value=ui[id];break}
 });
 if(ui.hide){$('#hide').checked=true;$('#list').classList.add('hide');$('#hideNote').hidden=false}
-updateVoiceUI();
+updateVoiceUI();updateAsrUI();
 fillSurah();overall();
 var startSurah=meta(ui.s)?ui.s:114;
 $('#surah').value=startSurah;
