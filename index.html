@@ -138,6 +138,9 @@ details.more .grid{margin-top:12px}
 .taf-t{font-size:1rem;line-height:2;color:var(--fg);overflow-wrap:anywhere}
 .taf-t.mut{color:var(--mut);font-size:.9rem}
 .ay.open{background:var(--soft)}
+.ay.out.open{opacity:1}
+.ay.ingrp{background:color-mix(in srgb,var(--gold) 9%,transparent);opacity:1}
+.taf-grp{font-size:.78rem;font-weight:700;color:var(--gold);margin-bottom:4px}
 .side{flex:none;display:flex;flex-direction:column;align-items:center;gap:0}
 .side .dot{margin-top:12px}
 .sb{font-size:.9rem;line-height:1;margin-top:3px;cursor:help}
@@ -371,7 +374,7 @@ function isSobhy(){return voice()==='sobhy'}
 /* Strip diacritics and unify letter shapes so spoken text can be compared to the Uthmani text */
 function norm(w){
   return w.replace(/[ً-ٰٟۖ-ۭـ]/g,'')
-    .replace(/[ٱأإآ]/g,'ا')
+    .replace(/[ٱأإآ]/g,'ا').replace(/ءا/g,'ا') /* Uthmani writes madd as ءا (ءَايَٰتُنَا) where plain spelling has آ */
     .replace(/ى/g,'ي').replace(/ة/g,'ه')
     .replace(/ؤ/g,'و').replace(/ئ/g,'ي')
     .replace(/[^ء-ي]/g,'');
@@ -518,9 +521,16 @@ function tafFill(i){
   var num=cur.num;
   loadTafsir().then(function(j){
     if(!cur||cur.num!==num)return;
-    var t=j[num]&&j[num][i];
+    var S=j[num]||{},t=S[i],a=i,b=i;
+    /* التفسير الميسر often explains several ayahs in one passage; the data repeats it on each of them */
+    while(t&&S[a-1]===t)a--;
+    while(t&&S[b+1]===t)b++;
     box.className='taf-t'+(t?'':' mut');
-    box.textContent=t||'مفيش تفسير متاح للآية دي.';
+    box.innerHTML=t?(b>a?'<div class="taf-grp">📎 التفسير ده للآيات من '+ar(a)+' إلى '+ar(b)+' مع بعض</div>':'')+esc(t)
+                   :'مفيش تفسير متاح للآية دي.';
+    document.querySelectorAll('.ay.ingrp').forEach(function(e){e.classList.remove('ingrp')});
+    var me=$('#ay'+i);
+    if(b>a&&me&&me.classList.contains('open'))for(var q=a;q<=b;q++)if(q!==i){var o=$('#ay'+q);if(o)o.classList.add('ingrp')}
   },function(){
     box.className='taf-t mut';
     box.textContent='تعذر تحميل التفسير. افتح التطبيق مرة وأنت متصل بالإنترنت.';
@@ -574,6 +584,7 @@ function tafTab(el,which){
 function toggleTafsir(el){
   var i=parseInt(el.getAttribute('data-i'),10),was=el.classList.contains('open');
   document.querySelectorAll('.ay.open').forEach(function(e){e.classList.remove('open')});
+  document.querySelectorAll('.ay.ingrp').forEach(function(e){e.classList.remove('ingrp')});
   if(was)return;
   el.classList.add('open');tafTab(el,'t');
   var box=$('#tt'+i);
@@ -741,33 +752,43 @@ function fitScore(X,t){
   for(var k=0;k<w.length;k++){var v=vec1(X,w[k]);for(var i=0;i<X.n;i++)if(v[i]){s++;break}}
   return s;
 }
-/* Longest in-order fuzzy match of expected words against what was heard.
-   Tolerates repeated starts, extra words, recognizer noise, and words the recognizer
-   split in two (يا أيها ← يٰأيها) or glued together. 1 = heard, 0 = missed. */
-function align(X,sp){
-  var exp=X.exp,n=X.n,m=sp.length,W=m+2,L=new Int32Array((n+2)*W),C=new Uint8Array((n+1)*W);
-  var v1=[],v2=[],v3=[],i,j,k,a,b,best,c,t;
+/* In-order fuzzy alignment of expected words against what was heard.
+   Each matched word scores 2, plus 1 when it directly continues a run of matches, so a common word
+   (من، في، كلا...) is pulled to its real place inside a recited run rather than into an ayah that was skipped.
+   Tolerates repeated starts, extra words, recognizer noise, and words the recognizer split in two
+   (يا أيها ← يٰأيها) or glued together. 1 = heard, 0 = missed.
+   late: on a tie, give a word to the LATER place. Used for the final grade, so when an ayah that starts
+   like the next one (الفلق ٣/٤) is skipped, the shared words go to the ayah that was really recited.
+   While listening the earliest place wins, so the live marks never jump ahead of the reciter. */
+function align(X,sp,late){
+  var exp=X.exp,n=X.n,m=sp.length,W=m+2,SZ=(n+2)*W;
+  var L0=new Int32Array(SZ),L1=new Int32Array(SZ),C0=new Uint8Array(SZ),C1=new Uint8Array(SZ);
+  var v1=[],v2=[],v3=[],i,j,k,p,a,b,base,cb,best,c,t,bon;
   for(j=0;j<m;j++){v1[j]=vec1(X,sp[j]);v3[j]=vec2(X,sp[j]);v2[j]=j+1<m?vec1(X,sp[j]+sp[j+1]):null}
   for(i=n-1;i>=0;i--)for(j=m;j>=0;j--){
     k=i*W+j;
-    if(!exp[i]||j===m){L[k]=L[k+W];continue}
-    a=L[k+W];b=L[k+1];
-    if(a>=b){best=a;c=0}else{best=b;c=1}
-    if(v1[j][i]&&(t=1+L[k+W+1])>=best){best=t;c=2}
-    if(v2[j]&&v2[j][i]&&(t=1+L[k+W+2])>best){best=t;c=3}
-    if(v3[j][i]&&(t=2+L[k+2*W+1])>best){best=t;c=4}
-    L[k]=best;C[k]=c;
+    if(!exp[i]){L0[k]=L0[k+W];L1[k]=L1[k+W];continue} /* pause marks: transparent, keep the run going */
+    if(j===m){L0[k]=L1[k]=0;continue}
+    a=L0[k+W];b=L0[k+1];
+    if(a>=b){base=a;cb=0}else{base=b;cb=1}
+    for(p=0;p<2;p++){
+      best=base;c=cb;bon=p;
+      if(v1[j][i]&&((t=2+bon+L1[k+W+1])>best||(!late&&t===best))){best=t;c=2}
+      if(v2[j]&&v2[j][i]&&(t=2+bon+L1[k+W+2])>best){best=t;c=3}
+      if(v3[j][i]&&(t=5+bon+L1[k+2*W+1])>best){best=t;c=4}
+      if(p){L1[k]=best;C1[k]=c}else{L0[k]=best;C0[k]=c}
+    }
   }
-  var res=new Array(n);i=0;j=0;
+  var res=new Array(n);i=0;j=0;p=0;
   while(i<n){
     if(!exp[i]){res[i]=1;i++;continue}
     if(j>=m){res[i]=0;i++;continue}
-    c=C[i*W+j];
-    if(c===0){res[i]=0;i++}
-    else if(c===1)j++;
-    else if(c===2){res[i]=1;i++;j++}
-    else if(c===3){res[i]=1;i++;j+=2}
-    else{res[i]=1;res[i+1]=1;i+=2;j++}
+    c=(p?C1:C0)[i*W+j];
+    if(c===0){res[i]=0;i++;p=0}
+    else if(c===1){j++;p=0}
+    else if(c===2){res[i]=1;i++;j++;p=1}
+    else if(c===3){res[i]=1;i++;j+=2;p=1}
+    else{res[i]=1;res[i+1]=1;i+=2;j++;p=1}
   }
   return res;
 }
@@ -1069,10 +1090,10 @@ function bestAlt(r){
   return best;
 }
 /* A word counts as recited if either recognizer heard it in its place */
-function combined(R){
-  var a=align(T.X,spoken(R.heard));
+function combined(R,late){
+  var a=align(T.X,spoken(R.heard),late);
   if(!R.wheard)return a;
-  var b=align(T.X,spoken(R.wheard));
+  var b=align(T.X,spoken(R.wheard),late);
   for(var q=0;q<a.length;q++)if(b[q])a[q]=1;
   return a;
 }
@@ -1109,7 +1130,7 @@ function completeFinish(R){
     if(!T.msg)T.msg='ما سمعتش صوت. قرّب الموبايل من بُقك وجرّب تاني.';
     T.res=null;T.R=null;
   }else{
-    T.res=combined(R);
+    T.res=combined(R,true);
     T.heard=R.heard;T.wheard=R.wheard;
     T.grades={};
     perAyah(T.res).forEach(function(a){T.grades[a.i]=a.ok===a.n?'ok':'rev'});
@@ -1384,7 +1405,7 @@ var ADK={
     masa:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_04.mp3',mb:10,len:1258}},
   sobhy:{name:'إسلام صبحي',sabah:{},masa:{}}
 };
-var ADK_KIND={sabah:{t:'أذكار الصباح',ic:'☀️',when:'من بعد الفجر لحد طلوع الشمس'},masa:{t:'أذكار المساء',ic:'🌙',when:'من بعد العصر لحد المغرب'}};
+var ADK_KIND={sabah:{t:'أذكار الصباح',ic:'☀️',when:'بعد صلاة الفجر'},masa:{t:'أذكار المساء',ic:'🌙',when:'بعد صلاة العصر'}};
 var adkV='alafasy',adkSt={},adkCur=null,adkUrl=null,adkPick=null,adkAudio=new Audio();
 adkAudio.preload='metadata';
 

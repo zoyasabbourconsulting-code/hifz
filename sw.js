@@ -1,7 +1,7 @@
 /* Offline support: keeps the app itself and its fonts on the device so it opens without internet.
    Pages: network first (so updates arrive), cache as fallback. Fonts: cache first.
    Adhkar audio is not handled here: the page saves it in IndexedDB and plays it from there. */
-var APP = 'hifz-app-v3', FONTS = 'hifz-fonts-v1';
+var APP = 'hifz-app-v4', FONTS = 'hifz-fonts-v1';
 var SHELL = ['./', './index.html', './asr-worker.js', './tafsir-muyassar.json', './asbab-nuzul.json', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
