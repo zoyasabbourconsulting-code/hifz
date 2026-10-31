@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>حفظ جزء عمّ</title>
+<meta name="theme-color" content="#0d5a43">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -161,6 +165,32 @@ details summary{cursor:pointer}
 .ctrl #bPlay{flex:1.6;border-radius:99px;padding:12px;font-size:1.05rem;box-shadow:0 4px 14px color-mix(in srgb,var(--acc) 35%,transparent)}
 .err{color:var(--warn);font-weight:700}
 .foot{text-align:center;font-size:.75rem;color:var(--mut);line-height:1.7;padding:0 8px}
+/* adhkar */
+.seg{display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.segb{flex:1;padding:9px;border:0;border-radius:9px;background:transparent;color:var(--mut);font:inherit;font-weight:700;cursor:pointer}
+.segb[aria-pressed="true"]{background:var(--card);color:var(--acc);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.adk{display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.adk.now{border-color:var(--gold)}
+.adk-h{display:flex;align-items:center;gap:12px}
+.adk-ic{flex:none;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:1.6rem;background:var(--gold-soft)}
+.adk.masa .adk-ic{background:color-mix(in srgb,var(--acc) 16%,var(--card))}
+.adk-h b{font-size:1.15rem}
+.adk-h .ttl{flex:1;min-width:0}
+.adk-h .tl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{margin-inline-start:auto;flex:none;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.chip.ok{background:color-mix(in srgb,var(--ok) 15%,var(--card));color:var(--ok)}
+.chip.now{background:var(--gold-soft);color:var(--gold)}
+.adk-p{display:flex;align-items:center;gap:10px}
+.adk-p .play{flex:none;width:52px;height:52px;border-radius:50%;padding:0;font-size:1.2rem}
+.adk-p .mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.adk-p input[type=range]{width:100%;accent-color:var(--acc);margin:0}
+.adk-p .time{font-size:.78rem;color:var(--mut);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.adk-p .time span{direction:ltr;unicode-bidi:isolate}
+.adk .acts{display:flex;gap:8px;flex-wrap:wrap}
+.adk .acts .btn{flex:1;font-size:.85rem;padding:9px 10px;white-space:nowrap}
+.adk .err a{color:inherit}
+body.adk-mode .session,body.adk-mode .player{display:none}
+body.adk-mode{padding-bottom:40px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -177,6 +207,12 @@ details summary{cursor:pointer}
     </div>
     <div class="bar" aria-hidden="true"><i id="allBar"></i></div>
   </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tabH" aria-selected="true" data-tab="h">📖 حفظ</button>
+    <button class="tab" role="tab" id="tabT" aria-selected="false" data-tab="t">🎤 تسميع</button>
+    <button class="tab" role="tab" id="tabA" aria-selected="false" data-tab="a">🤲 أذكار</button>
+  </div>
 
   <section class="card session">
     <label>السورة
@@ -225,11 +261,6 @@ details summary{cursor:pointer}
     </details>
   </section>
 
-  <div class="tabs" role="tablist">
-    <button class="tab" role="tab" id="tabH" aria-selected="true" data-tab="h">📖 حفظ</button>
-    <button class="tab" role="tab" id="tabT" aria-selected="false" data-tab="t">🎤 تسميع</button>
-  </div>
-
   <div id="msg" class="err" hidden></div>
 
   <section id="paneH" class="card stack">
@@ -254,7 +285,19 @@ details summary{cursor:pointer}
     <div id="testBox" class="stack"></div>
   </section>
 
-  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التقدم بيتحفظ على الموبايل ده بس.</div>
+  <section id="paneA" class="stack" hidden>
+    <div class="card stack">
+      <div class="seg" role="group" aria-label="القارئ">
+        <button class="segb" data-v="alafasy" aria-pressed="true">مشاري العفاسي</button>
+        <button class="segb" data-v="sobhy" aria-pressed="false">إسلام صبحي</button>
+      </div>
+      <div class="small" id="adkNote"></div>
+    </div>
+    <div id="adkList" class="stack"></div>
+    <input type="file" id="adkFile" accept="audio/*,.mp3,.m4a" hidden>
+  </section>
+
+  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس.</div>
 </div>
 
 <div class="player">
@@ -492,7 +535,7 @@ function stopAll(){
 }
 function playRange(){
   if(!cur)return;
-  showErr('');
+  showErr('');adkStop();
   if(state==='paused'&&queue.length){
     state='playing';wake(true);
     setStatus(itemStatus(queue[qi]));
@@ -516,7 +559,7 @@ function nextAyah(){
   qi=j;state='playing';wake(true);startItem();
 }
 function playOne(i){
-  killListen();stopAll();showErr('');
+  killListen();stopAll();adkStop();showErr('');
   queue=[{i:i,single:true}];qi=0;state='playing';startItem();
 }
 
@@ -811,7 +854,7 @@ function startTest(mode){
 function startListen(){
   var eng=engine(),useW=eng!=='chrome',useSR=!!SR&&(!useW||!ANDROID);
   if(!useSR&&!useW){T.msg='المتصفح ده مش بيدعم التعرف على الصوت. افتح اللينك من Chrome، أو اختار نموذج القرآن.';renderTest();return}
-  killListen();stopAll();wake(true);
+  killListen();stopAll();adkStop();wake(true);
   var tok=(T.R?T.R.token:0)+1,now=Date.now();
   T.R={token:tok,listen:true,fatal:false,heard:'',acc:'',hint:'',hintN:1,t0:now,last:now,act:now,rec:null,
        live:align(T.X,[]),tick:0,tries:0,useSR:useSR,useW:useW,parts:[],pending:0,wheard:'',cap:null,finalizing:false};
@@ -1111,14 +1154,17 @@ function testClick(e){
 
 /* ---------- Wiring ---------- */
 function switchTab(t){
-  var h=t==='h';
-  $('#paneH').hidden=!h;$('#paneT').hidden=h;
-  $('#tabH').setAttribute('aria-selected',h);
-  $('#tabT').setAttribute('aria-selected',!h);
-  if(!h){
+  $('#paneH').hidden=t!=='h';$('#paneT').hidden=t!=='t';$('#paneA').hidden=t!=='a';
+  $('#tabH').setAttribute('aria-selected',t==='h');
+  $('#tabT').setAttribute('aria-selected',t==='t');
+  $('#tabA').setAttribute('aria-selected',t==='a');
+  document.body.classList.toggle('adk-mode',t==='a');
+  if(t!=='t')killListen();
+  if(t==='t'){
     var e=engine();if(e!=='chrome'&&asrCached(e))asrLoad(e);
     updateAsrUI();renderTest();
-  }else killListen();
+  }
+  if(t==='a'){stopAll();renderAdk()}
 }
 document.querySelectorAll('.tab').forEach(function(b){
   b.addEventListener('click',function(){switchTab(b.getAttribute('data-tab'))});
@@ -1187,6 +1233,192 @@ $('#bPause').addEventListener('click',pauseAudio);
 $('#bNext').addEventListener('click',nextAyah);
 $('#bStop').addEventListener('click',stopAll);
 
+/* ---------- Morning & evening adhkar (play offline once saved on the device) ---------- */
+/* Alafasy files: archive.org item TvQuran.com__Athkar (athkar_03 = morning, athkar_04 = evening).
+   Islam Sobhi has no public mp3 of the adhkar, so the user adds the file from the phone once. */
+var ADK={
+  alafasy:{name:'مشاري العفاسي',
+    sabah:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_03.mp3',mb:10,len:1266},
+    masa:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_04.mp3',mb:10,len:1258}},
+  sobhy:{name:'إسلام صبحي',sabah:{},masa:{}}
+};
+var ADK_KIND={sabah:{t:'أذكار الصباح',ic:'☀️',when:'من بعد الفجر لحد طلوع الشمس'},masa:{t:'أذكار المساء',ic:'🌙',when:'من بعد العصر لحد المغرب'}};
+var adkV='alafasy',adkSt={},adkCur=null,adkUrl=null,adkPick=null,adkAudio=new Audio();
+adkAudio.preload='metadata';
+
+/* IndexedDB: one record per file, {blob, size, name} */
+var IDBP=null;
+function idb(){
+  if(!IDBP)IDBP=new Promise(function(res,rej){
+    var r=indexedDB.open('hifz-media',1);
+    r.onupgradeneeded=function(){r.result.createObjectStore('files')};
+    r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)};
+  });
+  return IDBP;
+}
+function idbDo(mode,fn){
+  return idb().then(function(db){return new Promise(function(res,rej){
+    var tx=db.transaction('files',mode),q=fn(tx.objectStore('files'));
+    tx.oncomplete=function(){res(q&&q.result)};tx.onerror=tx.onabort=function(){rej(tx.error)};
+  })});
+}
+function idbGet(k){return idbDo('readonly',function(st){return st.get(k)})}
+function idbPut(k,v){return idbDo('readwrite',function(st){return st.put(v,k)})}
+function idbDel(k){return idbDo('readwrite',function(st){return st.delete(k)})}
+
+function adkKey(v,k){return v+'-'+k}
+function st(v,k){var key=adkKey(v,k);return adkSt[key]||(adkSt[key]={have:false,size:0,dl:null,err:''})}
+function morningNow(){var h=new Date().getHours();return h>=3&&h<14}
+function mmss(x){if(!isFinite(x)||x<0)x=0;x=Math.floor(x);return ar(Math.floor(x/60))+':'+ar(String(x%60).padStart(2,'0'))}
+
+function adkInit(){
+  var u=loadUI();if(ADK[u.adkV])adkV=u.adkV;
+  document.querySelectorAll('.segb').forEach(function(b){
+    b.addEventListener('click',function(){adkV=b.getAttribute('data-v');saveUI({adkV:adkV});renderAdk()});
+  });
+  $('#adkList').addEventListener('click',adkClick);
+  $('#adkList').addEventListener('input',function(e){
+    if(e.target.classList.contains('aseek')&&adkCur===e.target.getAttribute('data-key')&&isFinite(adkAudio.duration))
+      adkAudio.currentTime=e.target.value/1000*adkAudio.duration;
+  });
+  $('#adkFile').addEventListener('change',function(){
+    var f=this.files&&this.files[0],key=adkPick;this.value='';
+    if(!f||!key)return;
+    adkSave(key,f,f.name).then(renderAdk);
+  });
+  adkAudio.addEventListener('timeupdate',adkTick);
+  adkAudio.addEventListener('loadedmetadata',adkTick);
+  adkAudio.addEventListener('play',renderAdk);
+  adkAudio.addEventListener('pause',renderAdk);
+  adkAudio.addEventListener('ended',function(){adkAudio.currentTime=0;renderAdk()});
+  adkAudio.addEventListener('error',function(){
+    if(!adkCur)return;
+    var s=adkSt[adkCur];if(s)s.err=navigator.onLine===false?'مفيش إنترنت، والملف مش محفوظ على الموبايل لسه.':'تعذر تشغيل الملف.';
+    adkStop();renderAdk();
+  });
+  /* which files are already saved on this device */
+  var keys=[];for(var v in ADK)for(var k in ADK_KIND)keys.push([v,k]);
+  Promise.all(keys.map(function(x){
+    return idbGet(adkKey(x[0],x[1])).then(function(r){var s=st(x[0],x[1]);s.have=!!r;s.size=r?r.size:0},function(){});
+  })).then(renderAdk);
+  renderAdk();
+}
+function adkSave(key,blob,name){
+  return idbPut(key,{blob:blob,size:blob.size,name:name||''}).then(function(){
+    var s=adkSt[key];s.have=true;s.size=blob.size;s.err='';s.dl=null;
+    if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
+  },function(){adkSt[key].err='مفيش مساحة كفاية على الموبايل لحفظ الملف.';adkSt[key].dl=null});
+}
+/* download for offline use, with progress */
+function adkDownload(v,k){
+  var key=adkKey(v,k),s=st(v,k),src=ADK[v][k];
+  if(s.dl!=null||!src.url)return;
+  s.dl=0;s.err='';renderAdk();
+  fetch(src.url,{mode:'cors'}).then(function(r){
+    if(!r.ok)throw new Error('http '+r.status);
+    var total=+r.headers.get('content-length')||src.mb*1048576;
+    if(!r.body||!r.body.getReader)return r.blob();
+    var rd=r.body.getReader(),parts=[],got=0,last=0;
+    function pump(){return rd.read().then(function(x){
+      if(x.done)return new Blob(parts,{type:'audio/mpeg'});
+      parts.push(x.value);got+=x.value.length;
+      var pc=Math.min(99,Math.floor(got/total*100));
+      if(pc!==last){last=pc;s.dl=pc;adkProg(key)}
+      return pump();
+    })}
+    return pump();
+  }).then(function(b){
+    if(!b||b.size<100000)throw new Error('short');
+    return adkSave(key,b,src.url.split('/').pop());
+  }).catch(function(e){
+    s.dl=null;s.why=String(e&&e.message||e);
+    s.err=navigator.onLine===false?'محتاج إنترنت عشان التحميل أول مرة.':'link';
+  }).then(renderAdk);
+}
+function adkProg(key){var b=document.querySelector('[data-act="dl"][data-key="'+key+'"]');if(b)b.textContent='⏳ بيتحمّل '+ar(adkSt[key].dl)+'٪'}
+function adkPlay(v,k){
+  var key=adkKey(v,k),s=st(v,k),src=ADK[v][k];
+  if(adkCur===key){if(adkAudio.paused)adkAudio.play().catch(function(){});else adkAudio.pause();return}
+  stopAll();killListen();adkStop();
+  adkCur=key;s.err='';
+  var go=function(url){
+    adkAudio.src=url;adkAudio.play().catch(function(){});
+    if('mediaSession' in navigator&&window.MediaMetadata){
+      navigator.mediaSession.metadata=new MediaMetadata({title:ADK_KIND[k].t,artist:ADK[v].name,album:'حفظ جزء عمّ',
+        artwork:[{src:'icon-512.png',sizes:'512x512',type:'image/png'}]});
+    }
+    renderAdk();
+  };
+  if(s.have)idbGet(key).then(function(r){
+    if(adkCur!==key)return;
+    if(adkUrl)URL.revokeObjectURL(adkUrl);
+    adkUrl=URL.createObjectURL(r.blob);go(adkUrl);
+  });
+  else if(src.url)go(src.url);
+}
+function adkStop(){
+  if(!adkCur)return;
+  try{adkAudio.pause()}catch(e){}
+  adkAudio.removeAttribute('src');try{adkAudio.load()}catch(e){}
+  adkCur=null;if(adkUrl){URL.revokeObjectURL(adkUrl);adkUrl=null}
+  if(!$('#paneA').hidden)renderAdk();
+}
+function adkTick(){
+  if(!adkCur)return;
+  var c=document.querySelector('.adk[data-key="'+adkCur+'"]');if(!c)return;
+  var d=adkAudio.duration,t=adkAudio.currentTime;
+  if(isFinite(d)&&d>0)c.querySelector('.aseek').value=Math.round(t/d*1000);
+  c.querySelector('.tc').textContent=mmss(t);
+  if(isFinite(d))c.querySelector('.td').textContent=mmss(d);
+}
+function adkClick(e){
+  var b=e.target.closest('[data-act]');if(!b)return;
+  var key=b.getAttribute('data-key'),i=key.indexOf('-'),v=key.slice(0,i),k=key.slice(i+1),act=b.getAttribute('data-act');
+  if(act==='play')adkPlay(v,k);
+  else if(act==='dl')adkDownload(v,k);
+  else if(act==='pick'){adkPick=key;$('#adkFile').click()}
+  else if(act==='del'){
+    if(!confirm('تمسح الملف المحفوظ؟ هتحتاج إنترنت أو تختاره تاني عشان تسمعه.'))return;
+    if(adkCur===key)adkStop();
+    idbDel(key).then(function(){var s=adkSt[key];s.have=false;s.size=0;renderAdk()});
+  }
+  else if(act==='back'){adkAudio.currentTime=Math.max(0,adkAudio.currentTime-15)}
+}
+function renderAdk(){
+  if($('#paneA').hidden)return;
+  document.querySelectorAll('.segb').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-v')===adkV)});
+  var R=ADK[adkV],order=morningNow()?['sabah','masa']:['masa','sabah'],h='';
+  $('#adkNote').textContent=adkV==='sobhy'
+    ?'أذكار إسلام صبحي مش متاحة كملف عام على النت. لو عندك الملف على الموبايل، اختاره مرة واحدة وهيتحفظ هنا ويشتغل من غير نت.'
+    :'اسمعها أونلاين، أو اضغط «حمّل» مرة واحدة على واي فاي وبعدها تشتغل من غير نت.';
+  order.forEach(function(k,ix){
+    var key=adkKey(adkV,k),s=st(adkV,k),src=R[k],K=ADK_KIND[k],playing=adkCur===key&&!adkAudio.paused,mine=adkCur===key;
+    var canPlay=s.have||!!src.url,chip;
+    if(s.have)chip='<span class="chip ok">✓ بيشتغل من غير نت</span>';
+    else if(ix===0)chip='<span class="chip now">وقتها دلوقتي</span>';
+    else chip='';
+    var dur=mine&&isFinite(adkAudio.duration)?adkAudio.duration:(src.len||0);
+    h+='<div class="card adk '+k+(ix===0?' now':'')+'" data-key="'+key+'">'
+      +'<div class="adk-h"><span class="adk-ic">'+K.ic+'</span><div class="ttl"><div class="tl"><b>'+K.t+'</b>'+chip+'</div><div class="small">'+esc(R.name)+' · '+K.when+'</div></div></div>';
+    if(canPlay){
+      h+='<div class="adk-p"><button class="btn pri play" data-act="play" data-key="'+key+'" aria-label="'+(playing?'إيقاف مؤقت':'تشغيل')+'">'+(playing?'⏸':'▶')+'</button>'
+        +'<div class="mid"><input type="range" class="aseek" data-key="'+key+'" min="0" max="1000" value="'+(mine&&isFinite(adkAudio.duration)?Math.round(adkAudio.currentTime/adkAudio.duration*1000):0)+'"'+(mine?'':' disabled')+' aria-label="موضع التشغيل">'
+        +'<div class="time"><span class="tc">'+mmss(mine?adkAudio.currentTime:0)+'</span><span class="td">'+(dur?mmss(dur):'')+'</span></div></div>'
+        +(mine?'<button class="btn ico" data-act="back" data-key="'+key+'" aria-label="رجوع ١٥ ثانية" style="width:48px;padding:10px 0">↺</button>':'')
+        +'</div>';
+    }
+    var acts=[];
+    if(!s.have&&src.url)acts.push('<button class="btn" data-act="dl" data-key="'+key+'">'+(s.dl!=null?'⏳ بيتحمّل '+ar(s.dl)+'٪':'⬇ حمّل للاستخدام من غير نت (~'+ar(src.mb)+' ميجا)')+'</button>');
+    if(!s.have&&(!src.url||s.err==='link'))acts.push('<button class="btn'+(src.url?'':' pri')+'" data-act="pick" data-key="'+key+'">📁 اختار الملف من الموبايل</button>');
+    if(s.have)acts.push('<button class="btn" data-act="del" data-key="'+key+'">🗑 امسح النسخة المحفوظة ('+ar((s.size/1048576).toFixed(1))+' ميجا)</button>');
+    h+='<div class="acts">'+acts.join('')+'</div>';
+    if(s.err==='link')h+='<div class="small err">الموقع رفض التحميل من جوه التطبيق. <a href="'+src.url+'" target="_blank" rel="noopener" download>نزّل الملف من هنا</a>، وبعدين اضغط «اختار الملف من الموبايل».</div>';
+    else if(s.err)h+='<div class="small err">'+esc(s.err)+'</div>';
+    h+='</div>';
+  });
+  $('#adkList').innerHTML=h;
+}
+
 /* ---------- Start ---------- */
 var ui=loadUI();
 SETTINGS.forEach(function(id){
@@ -1200,6 +1432,11 @@ fillSurah();overall();
 var startSurah=meta(ui.s)?ui.s:114;
 $('#surah').value=startSurah;
 loadSurah(startSurah);
+adkInit();
+/* offline: cache the app itself so it opens without internet */
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
 </script>
 </body>
 </html>
