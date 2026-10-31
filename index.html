@@ -424,35 +424,89 @@ function playOne(i){
 var T=null,hintTimer=null;
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 
+/* Edit distance with a single reusable row (no per-call matrix allocation). */
+var LEVROW=new Int32Array(64);
 function lev(a,b){
-  var m=a.length,n=b.length,d=[],i,j;
-  for(i=0;i<=m;i++)d[i]=[i];
-  for(j=1;j<=n;j++)d[0][j]=j;
-  for(i=1;i<=m;i++)for(j=1;j<=n;j++)
-    d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
-  return d[m][n];
-}
-function sim(a,b){if(!a||!b)return 0;if(a===b)return 1;return 1-lev(a,b)/Math.max(a.length,b.length)}
-function spoken(t){return t.trim().split(/\s+/).map(norm).filter(Boolean)}
-/* Longest in-order fuzzy match of expected words against what was heard.
-   Tolerates repeated starts, extra words and recognizer noise. 1 = heard, 0 = missed. */
-function align(exp,sp){
-  var n=exp.length,m=sp.length,L=[],M=[],i,j;
-  for(i=0;i<=n;i++){L[i]=new Int32Array(m+1);M[i]=new Uint8Array(m)}
-  for(i=0;i<n;i++)if(exp[i])for(j=0;j<m;j++)M[i][j]=sim(exp[i],sp[j])>=0.7?1:0;
-  for(i=n-1;i>=0;i--)for(j=m-1;j>=0;j--){
-    if(!exp[i]){L[i][j]=L[i+1][j];continue}
-    var best=L[i+1][j]>L[i][j+1]?L[i+1][j]:L[i][j+1];
-    if(M[i][j]&&1+L[i+1][j+1]>best)best=1+L[i+1][j+1];
-    L[i][j]=best;
+  var m=a.length,n=b.length;if(!m)return n;if(!n)return m;
+  var row=n+1>LEVROW.length?new Int32Array(n+1):LEVROW,i,j,prev,tmp,v,ca;
+  for(j=0;j<=n;j++)row[j]=j;
+  for(i=1;i<=m;i++){
+    prev=row[0];row[0]=i;ca=a.charCodeAt(i-1);
+    for(j=1;j<=n;j++){
+      tmp=row[j];v=prev+(ca===b.charCodeAt(j-1)?0:1);
+      if(tmp+1<v)v=tmp+1;if(row[j-1]+1<v)v=row[j-1]+1;
+      row[j]=v;prev=tmp;
+    }
   }
-  var res=[];i=0;j=0;
+  return row[n];
+}
+function sim(a,b){
+  if(!a||!b)return 0;if(a===b)return 1;
+  var mx=a.length>b.length?a.length:b.length,df=a.length-b.length;if(df<0)df=-df;
+  if(df>mx*0.3)return 0; /* cannot reach the threshold: skip the edit distance */
+  return 1-lev(a,b)/mx;
+}
+/* Consonant skeleton: the recognizer often adds or drops long vowels and hamza
+   (ابراهيم / إبرٰهيم، الصلاة / الصلوٰة، يسألون / يسـٔلون) */
+function skel(w){return w.charAt(0)+w.slice(1).replace(/[اويىء]/g,'')}
+function wmatch(a,b){
+  if(!a||!b)return 0;
+  if(sim(a,b)>=0.7)return 1;
+  var sa=skel(a),sb=skel(b);
+  return sa.length>=3&&sim(sa,sb)>=0.75?1:0;
+}
+function spoken(t){return t.trim().split(/\s+/).map(norm).filter(Boolean)}
+
+/* Matcher for one recitation: every heard word is compared with the expected words
+   only once, then cached, so each new result only costs the new words. */
+function makeMatcher(exp){
+  var n=exp.length,pair=[];
+  for(var i=0;i<n;i++)pair[i]=(exp[i]&&i+1<n&&exp[i+1])?exp[i]+exp[i+1]:'';
+  return {exp:exp,pair:pair,n:n,c1:Object.create(null),c2:Object.create(null)};
+}
+function vec1(X,w){
+  var v=X.c1[w];if(v)return v;
+  v=new Uint8Array(X.n);for(var i=0;i<X.n;i++)if(X.exp[i])v[i]=wmatch(X.exp[i],w);
+  return X.c1[w]=v;
+}
+function vec2(X,w){
+  var v=X.c2[w];if(v)return v;
+  v=new Uint8Array(X.n);for(var i=0;i<X.n;i++)if(X.pair[i])v[i]=wmatch(X.pair[i],w);
+  return X.c2[w]=v;
+}
+/* How many heard words belong to the expected text (used to pick the best recognizer alternative) */
+function fitScore(X,t){
+  var w=spoken(t),s=0;
+  for(var k=0;k<w.length;k++){var v=vec1(X,w[k]);for(var i=0;i<X.n;i++)if(v[i]){s++;break}}
+  return s;
+}
+/* Longest in-order fuzzy match of expected words against what was heard.
+   Tolerates repeated starts, extra words, recognizer noise, and words the recognizer
+   split in two (يا أيها ← يٰأيها) or glued together. 1 = heard, 0 = missed. */
+function align(X,sp){
+  var exp=X.exp,n=X.n,m=sp.length,W=m+2,L=new Int32Array((n+2)*W),C=new Uint8Array((n+1)*W);
+  var v1=[],v2=[],v3=[],i,j,k,a,b,best,c,t;
+  for(j=0;j<m;j++){v1[j]=vec1(X,sp[j]);v3[j]=vec2(X,sp[j]);v2[j]=j+1<m?vec1(X,sp[j]+sp[j+1]):null}
+  for(i=n-1;i>=0;i--)for(j=m;j>=0;j--){
+    k=i*W+j;
+    if(!exp[i]||j===m){L[k]=L[k+W];continue}
+    a=L[k+W];b=L[k+1];
+    if(a>=b){best=a;c=0}else{best=b;c=1}
+    if(v1[j][i]&&(t=1+L[k+W+1])>=best){best=t;c=2}
+    if(v2[j]&&v2[j][i]&&(t=1+L[k+W+2])>best){best=t;c=3}
+    if(v3[j][i]&&(t=2+L[k+2*W+1])>best){best=t;c=4}
+    L[k]=best;C[k]=c;
+  }
+  var res=new Array(n);i=0;j=0;
   while(i<n){
-    if(!exp[i]){res.push(1);i++;continue}
-    if(j>=m){res.push(0);i++;continue}
-    if(M[i][j]&&L[i][j]===1+L[i+1][j+1]){res.push(1);i++;j++}
-    else if(L[i+1][j]>=L[i][j+1]){res.push(0);i++}
-    else j++;
+    if(!exp[i]){res[i]=1;i++;continue}
+    if(j>=m){res[i]=0;i++;continue}
+    c=C[i*W+j];
+    if(c===0){res[i]=0;i++}
+    else if(c===1)j++;
+    else if(c===2){res[i]=1;i++;j++}
+    else if(c===3){res[i]=1;i++;j+=2}
+    else{res[i]=1;res[i+1]=1;i+=2;j++}
   }
   return res;
 }
@@ -481,7 +535,8 @@ function startTest(mode){
   /* Flat list of every word in the selection, tagged with its ayah */
   var E=[];
   list.forEach(function(ai){ayah(ai).t.split(' ').forEach(function(w,q){E.push({i:ai,q:q,w:w,e:norm(w)})})});
-  T={mode:mode,list:list,E:E,exp:E.map(function(x){return x.e}),R:null,res:null,grades:null,msg:'',done:null,shown:0,peek:false};
+  var exp=E.map(function(x){return x.e});
+  T={mode:mode,list:list,E:E,exp:exp,X:makeMatcher(exp),R:null,res:null,grades:null,msg:'',done:null,shown:0,peek:false};
   renderTest();
 }
 
@@ -491,7 +546,7 @@ function startListen(){
   stopAll();wake(true);
   var tok=(T.R?T.R.token:0)+1;
   T.R={token:tok,listen:true,fatal:false,heard:'',acc:'',hint:'',hintN:1,t0:Date.now(),last:Date.now(),rec:null,
-       live:align(T.exp,[])};
+       live:align(T.X,[]),tick:0,tries:0};
   T.msg='';T.res=null;T.grades=null;T.peek=false;
   session(T.R,tok);
   clearInterval(hintTimer);
@@ -512,7 +567,7 @@ function startListen(){
 function session(R,tok){
   var me=T,rec;
   try{rec=new SR()}catch(e){R.fatal=true;T.msg='تعذر تشغيل التعرف على الصوت.';finishListen();return}
-  rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=1;
+  rec.lang='ar-SA';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=5;
   R.rec=rec;
   function mine(){return T===me&&T.R===R&&R.token===tok}
   rec.onresult=function(ev){
@@ -520,12 +575,11 @@ function session(R,tok){
     /* Some Android builds repeat the whole text so far in every result: keep the longest prefix chain */
     var s='';
     for(var k=0;k<ev.results.length;k++){
-      var t=ev.results[k][0].transcript.trim();if(!t)continue;
+      var t=bestAlt(ev.results[k]);if(!t)continue;
       if(s&&t.indexOf(s)===0)s=t;else if(s.indexOf(t)===-1)s=(s+' '+t).trim();
     }
     R.heard=(R.acc+' '+s).trim();R.last=Date.now();R.hint='';R.hintN=1;
-    R.live=align(T.exp,spoken(R.heard));
-    if(allOk(R.live))finishListen();else renderTest();
+    liveUpdate(R);
   };
   rec.onerror=function(ev){
     if(!mine())return;
@@ -542,23 +596,49 @@ function session(R,tok){
     if(!R.listen)return;
     R.acc=R.heard;
     var now=Date.now();
-    if(!R.fatal&&now-R.t0<1800000&&now-R.last<25000){
-      setTimeout(function(){if(mine()&&R.listen)session(R,tok)},150);
-    }else finishListen();
+    /* restart right away so as few words as possible are lost between sessions */
+    if(!R.fatal&&now-R.t0<1800000&&now-R.last<25000)session(R,tok);
+    else finishListen();
   };
-  try{rec.start()}catch(e){R.fatal=true;T.msg='تعذر تشغيل الميكروفون.';finishListen()}
+  try{rec.start();R.tries=0}catch(e){
+    R.rec=null;
+    /* the previous session may not have released the mic yet: retry shortly */
+    if(++R.tries<=4)setTimeout(function(){if(mine()&&R.listen)session(R,tok)},120*R.tries);
+    else{R.fatal=true;T.msg='تعذر تشغيل الميكروفون.';finishListen()}
+  }
+}
+/* Pick the recognizer alternative that fits the expected text best (the top one by default) */
+function bestAlt(r){
+  var t0=(r[0]&&r[0].transcript||'').trim();
+  if(r.length<2)return t0;
+  var best=t0,bs=fitScore(T.X,t0);
+  for(var a=1;a<r.length;a++){
+    var t=(r[a].transcript||'').trim();if(!t)continue;
+    var sc=fitScore(T.X,t);if(sc>bs){bs=sc;best=t}
+  }
+  return best;
+}
+/* Re-align and redraw at most every ~60 ms: interim results can arrive many times a second */
+function liveUpdate(R){
+  if(R.tick)return;
+  R.tick=setTimeout(function(){
+    R.tick=0;
+    if(!T||T.R!==R||!R.listen)return;
+    R.live=align(T.X,spoken(R.heard));
+    if(allOk(R.live))finishListen();else renderTest();
+  },60);
 }
 function finishListen(){
   var R=T&&T.R;if(!R||!R.listen)return;
   clearInterval(hintTimer);hintTimer=null;
-  R.listen=false;R.token++;
+  R.listen=false;R.token++;clearTimeout(R.tick);R.tick=0;
   var r=R.rec;R.rec=null;try{if(r)r.abort()}catch(e){}
   if(state!=='playing')wake(false);
   if(!R.heard){
     if(!T.msg)T.msg='ما سمعتش صوت. قرّب الموبايل من بُقك وجرّب تاني.';
     T.res=null;T.R=null;
   }else{
-    T.res=align(T.exp,spoken(R.heard));
+    T.res=align(T.X,spoken(R.heard));
     T.heard=R.heard;
     T.grades={};
     perAyah(T.res).forEach(function(a){T.grades[a.i]=a.ok===a.n?'ok':'rev'});
