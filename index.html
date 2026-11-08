@@ -71,6 +71,12 @@ body{
   background:conic-gradient(#e7c77c calc(var(--p)*1%),rgba(255,255,255,.16) 0);
   display:grid;place-items:center;
 }
+.hero-acts{position:relative;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.hbadge{display:inline-flex;align-items:center;gap:4px;font-size:.76rem;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.18);white-space:nowrap}
+.hbadge.warn{background:rgba(231,199,124,.18);border-color:rgba(231,199,124,.4);color:#f3dfa6}
+.hbtn{font:inherit;font-size:.8rem;font-weight:700;padding:5px 12px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.hbtn.car{margin-inline-start:auto;background:#e7c77c;color:#0a3f30;border-color:#e7c77c}
+.hbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .ring span{width:41px;height:41px;border-radius:50%;background:var(--hero2);display:grid;place-items:center;font-weight:800;font-size:.8rem}
 
 /* session card */
@@ -128,6 +134,8 @@ details.more .grid{margin-top:12px}
 .dot>b{position:relative;z-index:1}
 .dot.ok{color:#fff}.dot.ok::before,.dot.ok::after{background:var(--ok);border-color:var(--ok)}
 .dot.rev{color:#fff}.dot.rev::before,.dot.rev::after{background:var(--warn);border-color:var(--warn)}
+.dot{cursor:pointer}
+.dot.due::before,.dot.due::after{box-shadow:0 0 0 2px var(--gold)}
 .ay .bd{flex:1;min-width:0}
 .taf{display:none;margin:2px 0 8px;padding:12px 14px;border-radius:14px;background:var(--gold-soft);border-inline-start:4px solid var(--gold);cursor:default}
 .ay.open .taf{display:block;animation:tafin .2s ease-out}
@@ -224,6 +232,44 @@ details summary{cursor:pointer}
 .adk .err a{color:inherit}
 body.adk-mode .session,body.adk-mode .player{display:none}
 body.adk-mode{padding-bottom:40px}
+body.plan-mode .session{display:none}
+/* plan & backup */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.stat-box{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 6px}
+.stat-box b{display:block;font-size:1.3rem;color:var(--acc);font-variant-numeric:tabular-nums}
+.stat-box span{font-size:.76rem;color:var(--mut)}
+.plan-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.plan-item-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.plan-item-title{font-weight:700;font-size:.95rem}
+.plan-item-sub{font-size:.8rem;color:var(--mut)}
+.plan-item .btn{flex:none;padding:8px 12px;font-size:.85rem}
+.btn.sm{padding:8px 10px;font-size:.85rem}
+textarea{width:100%;font:inherit;font-size:.85rem;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:var(--fg);direction:ltr}
+.toast{background:var(--hl);border:1px solid var(--acc);color:var(--fg);padding:8px 12px;border-radius:12px;font-size:.88rem;font-weight:700}
+.wfix{cursor:pointer}
+/* driving mode: one deliberate dark, high-contrast look regardless of theme */
+.car-overlay{position:fixed;inset:0;z-index:100;background:#050b09;color:#f2fbf7;display:flex;flex-direction:column;justify-content:space-between;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));user-select:none}
+.car-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-bottom:1px solid #1b3027;padding-bottom:12px}
+.car-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.car-surah{font-size:1.2rem;font-weight:800;color:#e7c77c}
+.car-sub{font-size:.9rem;color:#9bb5ab}
+.car-top-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.car-pill{padding:10px 14px;border-radius:12px;border:1px solid #28463a;background:#0f1d18;color:#e6efeb;font:inherit;font-weight:700;font-size:.88rem;cursor:pointer}
+.car-pill.active{background:#0f6b4f;border-color:#43c08c;color:#fff}
+.car-pill.exit{background:#3a1816;border-color:#7c2d26;color:#ffaba0}
+.car-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px 8px;overflow-y:auto;gap:14px}
+.car-ayah{font-family:var(--quran);font-size:clamp(2rem,5.2vw,3.3rem);line-height:2.15;color:#fff;max-width:960px;overflow-wrap:anywhere}
+.car-ayah .car-num{color:#e7c77c;font-size:.8em;margin-inline-start:6px}
+.car-next-cue{font-family:var(--quran);font-size:clamp(1.1rem,2.8vw,1.5rem);line-height:1.9;color:#7f9c90;max-width:860px}
+.car-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-top:10px;border-top:1px solid #1b3027;max-width:760px;width:100%;margin:0 auto}
+.car-btn{padding:18px 6px;border-radius:16px;border:1px solid #28463a;background:#11211b;color:#f2fbf7;font:inherit;font-size:1.1rem;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.car-btn span{font-size:.85rem}
+.car-btn.pri{background:#0f6b4f;border-color:#43c08c}
+.car-btn.on{border-color:#4cc27f;color:#9ff0c4}
+.car-btn:active{transform:scale(.98)}
+.car-pill:focus-visible,.car-btn:focus-visible{outline:3px solid #e7c77c;outline-offset:2px}
+.car-hint{font-size:.78rem;color:#7f9c90;text-align:center;margin-top:6px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -239,12 +285,19 @@ body.adk-mode{padding-bottom:40px}
       <div class="ring" id="ring" aria-hidden="true"><span id="allPct">٠٪</span></div>
     </div>
     <div class="bar" aria-hidden="true"><i id="allBar"></i></div>
+    <div class="hero-acts">
+      <span class="hbadge" id="streakBadge" title="أيام متتالية سمّعت فيها">🔥 ٠ يوم</span>
+      <span class="hbadge" id="todayBadge" title="الآيات اللي قيّمتها النهارده">النهارده ٠/٥</span>
+      <button class="hbtn car" id="bCarOpen" type="button">🚗 وضع القيادة</button>
+      <button class="hbtn" id="bTheme" type="button" aria-label="تغيير المظهر فاتح/غامق">🌓</button>
+    </div>
   </header>
 
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" id="tabH" aria-selected="true" data-tab="h">📖 حفظ</button>
     <button class="tab" role="tab" id="tabT" aria-selected="false" data-tab="t">🎤 تسميع</button>
     <button class="tab" role="tab" id="tabA" aria-selected="false" data-tab="a">🤲 أذكار</button>
+    <button class="tab" role="tab" id="tabP" aria-selected="false" data-tab="p">📅 الورد</button>
   </div>
 
   <section class="card session">
@@ -288,6 +341,13 @@ body.adk-mode{padding-bottom:40px}
           <select id="echo">
             <option value="0" selected>لا</option>
             <option value="1">أيوه، سكتة بطول الآية</option>
+          </select>
+        </label>
+        <label class="full">لما المقطع يخلص
+          <select id="afterMode">
+            <option value="loop" selected>🔁 يعيد نفس المقطع (تثبيت)</option>
+            <option value="next">⏭ يكمّل المقطع اللي بعده تلقائياً</option>
+            <option value="stop">⏹ يقف</option>
           </select>
         </label>
       </div>
@@ -336,7 +396,74 @@ body.adk-mode{padding-bottom:40px}
     <input type="file" id="adkFile" accept="audio/*,.mp3,.m4a" hidden>
   </section>
 
-  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التفسير الميسر من مجمع الملك فهد لطباعة المصحف الشريف. أسباب النزول (الصحيح منها) من كتاب «صحيح أسباب النزول» لإبراهيم العلي، عبر مجموعة بيانات مفتوحة. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس.</div>
+  <section id="paneP" class="stack" hidden>
+    <div class="card stack">
+      <div class="stat-grid">
+        <div class="stat-box"><b id="stOk">٠</b><span>آية محفوظة</span></div>
+        <div class="stat-box"><b id="stRev">٠</b><span>محتاجة مراجعة</span></div>
+        <div class="stat-box"><b id="stDue">٠</b><span>جه وقت مراجعتها</span></div>
+      </div>
+      <label>هدفك في اليوم
+        <select id="dailyGoal">
+          <option value="3">٣ آيات</option>
+          <option value="5" selected>٥ آيات</option>
+          <option value="10">١٠ آيات</option>
+          <option value="15">١٥ آية</option>
+        </select>
+      </label>
+      <div id="planBox" class="stack"></div>
+    </div>
+    <div class="card stack">
+      <b>نسخة احتياطية من تقدمك</b>
+      <div class="small">التقدم متسجل على الموبايل ده بس. احفظ نسخة في ملف، أو انسخ الكود، عشان تنقله لموبايل تاني أو ترجّعه لو اتمسح.</div>
+      <div class="row">
+        <button class="btn pri" id="bExportFile" type="button">⬇ حمّل ملف النسخة</button>
+        <button class="btn" id="bImportFileBtn" type="button">⬆ رجّع من ملف</button>
+        <input type="file" id="importFileInput" accept=".json,application/json" hidden>
+      </div>
+      <div class="row">
+        <button class="btn sm" id="bCopyCode" type="button">📋 انسخ الكود</button>
+        <button class="btn sm" id="bTogglePaste" type="button">📥 الصق كود</button>
+      </div>
+      <div id="pasteArea" class="stack" hidden>
+        <label for="backupText">الصق الكود هنا</label>
+        <textarea id="backupText" rows="3"></textarea>
+        <div class="row">
+          <button class="btn ok sm" id="bApplyCode" type="button">رجّع التقدم</button>
+          <button class="btn sm" id="bClosePaste" type="button">إغلاق</button>
+        </div>
+      </div>
+      <div id="backupToast" class="toast" role="status" hidden></div>
+    </div>
+  </section>
+
+  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التفسير الميسر من مجمع الملك فهد لطباعة المصحف الشريف. أسباب النزول (الصحيح منها) من كتاب «صحيح أسباب النزول» لإبراهيم العلي، عبر مجموعة بيانات مفتوحة. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس، وتقدر تاخد منها نسخة من تبويب «الورد».</div>
+</div>
+
+<div id="carOverlay" class="car-overlay" hidden>
+  <div class="car-top">
+    <div class="car-meta">
+      <div class="car-surah" id="carSurahTitle">سورة الناس</div>
+      <div class="car-sub" id="carStatusSub">اضغط تشغيل</div>
+    </div>
+    <div class="car-top-btns">
+      <button class="car-pill active" id="bCarAfterToggle" type="button">🔁 يعيد المقطع</button>
+      <button class="car-pill exit" id="bCarClose" type="button">✕ خروج</button>
+    </div>
+  </div>
+  <div class="car-body">
+    <div class="car-ayah" id="carAyahTxt">اضغط تشغيل</div>
+    <div class="car-next-cue" id="carNextTxt"></div>
+  </div>
+  <div>
+    <div class="car-controls">
+      <button class="car-btn" id="bCarPrev" type="button">⏮<span>السابقة</span></button>
+      <button class="car-btn pri" id="bCarPlayPause" type="button">▶<span>تشغيل</span></button>
+      <button class="car-btn" id="bCarNext" type="button">⏭<span>التالية</span></button>
+      <button class="car-btn" id="bCarMarkOk" type="button">✓<span>حفظتها</span></button>
+    </div>
+    <div class="car-hint">الشاشة مش هتطفي في الوضع ده. اسم الآية وأزرار التشغيل بيظهروا في إشعار الموبايل، ولو العربية بتدعم ده بيظهروا على شاشتها وتشتغل من أزرار الدركسيون.</div>
+  </div>
 </div>
 
 <div class="player">
@@ -348,6 +475,7 @@ body.adk-mode{padding-bottom:40px}
       <button class="btn pri" id="bPlay">▶ تشغيل</button>
       <button class="btn ico" id="bPause" aria-label="إيقاف مؤقت">⏸</button>
       <button class="btn side" id="bNext">⏭ التالية</button>
+      <button class="btn ico" id="bCarBar" aria-label="وضع القيادة">🚗</button>
     </div>
   </div>
 </div>
@@ -385,12 +513,55 @@ var store={};
 try{store=JSON.parse(localStorage.getItem('hifz-v1')||'{}')||{}}catch(e){store={}}
 function saveStore(){try{localStorage.setItem('hifz-v1',JSON.stringify(store))}catch(e){}}
 function stat(s,i){var x=store[s+':'+i];return x?x.s:''}
-function setStat(s,i,v){store[s+':'+i]={s:v,t:Date.now()};saveStore()}
+function statObj(s,i){return store[s+':'+i]||null}
+/* each 'ok' raises the ayah one level; a miss sends it back to 0. The level sets when it comes back for review. */
+function setStat(s,i,v){
+  var key=s+':'+i,prev=store[key]||{},lvl=prev.l||0;
+  if(v==='ok')lvl=Math.min(5,lvl+1);else if(v==='rev')lvl=0;
+  store[key]={s:v,t:Date.now(),l:lvl};saveStore();
+  if(v==='ok'||v==='rev')recordDailyProgress(key);
+}
+var INTERVAL_DAYS=[1,3,7,14,30,60];
+function isDueReview(s,i){
+  var x=statObj(s,i);if(!x||x.s!=='ok'||!x.t)return false;
+  return (Date.now()-x.t)/86400000>=INTERVAL_DAYS[Math.min(INTERVAL_DAYS.length-1,x.l||0)];
+}
+function dotCls(s,i){var v=stat(s,i);return v+(v==='ok'&&isDueReview(s,i)?' due':'')}
+/* daily activity and streak */
+function dayKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function todayKey(){return dayKey(new Date())}
+function yesterdayKey(){var d=new Date();d.setDate(d.getDate()-1);return dayKey(d)}
+function loadActivity(){try{return JSON.parse(localStorage.getItem('hifz-act')||'{}')||{}}catch(e){return {}}}
+function saveActivity(a){try{localStorage.setItem('hifz-act',JSON.stringify(a))}catch(e){}}
+function recordDailyProgress(k){
+  var a=loadActivity(),tk=todayKey();
+  if(!a.days)a.days={};if(!a.days[tk])a.days[tk]=[];
+  if(a.days[tk].indexOf(k)===-1)a.days[tk].push(k);
+  if(a.lastDate!==tk){a.streak=a.lastDate===yesterdayKey()?(a.streak||0)+1:1;a.lastDate=tk}
+  /* keep about two months of history */
+  var ks=Object.keys(a.days).sort();while(ks.length>62)delete a.days[ks.shift()];
+  saveActivity(a);updateHeaderBadges();
+}
+function goal(){return parseInt(($('#dailyGoal')||{}).value||'5',10)}
+function updateHeaderBadges(){
+  var a=loadActivity(),tk=todayKey();
+  var streak=(a.lastDate===tk||a.lastDate===yesterdayKey())?(a.streak||0):0;
+  var n=(a.days&&a.days[tk])?a.days[tk].length:0,g=goal();
+  $('#streakBadge').textContent='🔥 '+ar(streak)+(streak===1?' يوم':' أيام');
+  $('#todayBadge').textContent='النهارده '+ar(n)+'/'+ar(g)+(n>=g?' ✓':'');
+  $('#todayBadge').className='hbadge'+(n>=g?'':' warn');
+}
+/* tap the medallion: لسه → حافظها → مراجعة → لسه */
+function cycleStat(s,i){
+  var c=stat(s,i),nx=c===''?'ok':(c==='ok'?'rev':'');
+  if(!nx){delete store[s+':'+i];saveStore()}else setStat(s,i,nx);
+  updateDot(i);fillSurah();overall();renderPlan();updateCarDisplay();
+}
 function meta(s){return SURAHS.filter(function(x){return x[0]===s})[0]}
 function countStat(s,v){var c=0,n=meta(s)[2];for(var i=1;i<=n;i++)if(stat(s,i)===v)c++;return c}
 
 /* ---------- Settings ---------- */
-var SETTINGS=['voice','rep','link','speed','echo','engine'];
+var SETTINGS=['voice','rep','link','speed','echo','engine','dailyGoal','afterMode'];
 function loadUI(){try{return JSON.parse(localStorage.getItem('hifz-ui')||'{}')||{}}catch(e){return {}}}
 function saveUI(patch){
   try{var u=loadUI();for(var k in patch)u[k]=patch[k];localStorage.setItem('hifz-ui',JSON.stringify(u))}catch(e){}
@@ -406,7 +577,7 @@ function wake(on){
   }catch(e){}
 }
 document.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='visible'&&(state==='playing'||isListening()))wake(true);
+  if(document.visibilityState==='visible'&&(state==='playing'||isListening()||carOpen()))wake(true);
 });
 
 var cur=null; /* {num,name,count,basmala,ayahs:[{n,i,t}]} */
@@ -430,13 +601,17 @@ function overall(){
   $('#ring').style.setProperty('--p',pct.toFixed(1));
   $('#allPct').textContent=ar(Math.round(pct))+'٪';
   $('#allTxt').textContent=done?'حفظت '+ar(done)+' آية من '+ar(TOTAL):'ابدأ رحلتك مع '+ar(TOTAL)+' آية';
+  var rev=0,due=0;
+  SURAHS.forEach(function(x){for(var i=1;i<=x[2];i++){var v=stat(x[0],i);if(v==='rev')rev++;else if(v==='ok'&&isDueReview(x[0],i))due++}});
+  $('#stOk').textContent=ar(done);$('#stRev').textContent=ar(rev);$('#stDue').textContent=ar(due);
+  updateHeaderBadges();
 }
 function fillRange(count,firstFrom){
   var f=$('#from'),t=$('#to');
   f.innerHTML='';t.innerHTML='';
   for(var i=1;i<=count;i++){f.add(new Option(ar(i),i));t.add(new Option(ar(i),i))}
   f.value=firstFrom;
-  t.value=Math.min(count,firstFrom+2);
+  t.value=Math.min(count,firstFrom+Math.max(2,goal()-1));
 }
 function firstTodo(num,count){
   for(var i=1;i<=count;i++)if(stat(num,i)!=='ok')return i;
@@ -445,8 +620,9 @@ function firstTodo(num,count){
 function showErr(m){var e=$('#msg');if(m){e.textContent=m;e.hidden=false}else e.hidden=true}
 
 var loadSeq=0;
-async function loadSurah(num){
-  stopAll();resetT();
+async function loadSurah(num,customFrom,customTo,autoPlay){
+  if(!autoPlay)stopAll();
+  resetT();
   showErr('');
   var seq=++loadSeq,m=meta(num),key='hifz-text-'+num,data=null;
   try{data=JSON.parse(localStorage.getItem(key))}catch(e){}
@@ -476,10 +652,14 @@ async function loadSurah(num){
     basmala=w.slice(0,4).join(' ');ay[0].t=w.slice(4).join(' ');
   }
   cur={num:num,name:m[1],count:m[2],basmala:basmala,ayahs:ay};
-  fillRange(cur.count,firstTodo(num,cur.count));
+  fillRange(cur.count,customFrom||firstTodo(num,cur.count));
+  if(customTo)$('#to').value=Math.min(cur.count,customTo);
   saveUI({s:num});
   renderList();
   renderTest();
+  renderPlan();
+  updateCarDisplay();
+  if(autoPlay){queue=buildQueue();qi=0;state='playing';wake(true);startItem()}
 }
 function ayah(i){return cur.ayahs[i-1]}
 function rangeFrom(){return parseInt($('#from').value,10)}
@@ -492,7 +672,7 @@ function renderList(){
   for(var i=1;i<=cur.count;i++){
     var a=ayah(i),inR=i>=rangeFrom()&&i<=rangeTo();
     h+='<div class="ay'+(inR?'':' out')+'" data-i="'+i+'" id="ay'+i+'">'
-      +'<span class="side"><span class="dot '+stat(cur.num,i)+'" id="dot'+i+'"><b>'+ar(i)+'</b></span><span class="sb" id="sb'+i+'" title="ليها سبب نزول" hidden>📜</span></span>'
+      +'<span class="side"><span class="dot '+dotCls(cur.num,i)+'" id="dot'+i+'" data-dot="'+i+'" title="اضغط لتغيير الحالة: لسه / حافظها / مراجعة"><b>'+ar(i)+'</b></span><span class="sb" id="sb'+i+'" title="ليها سبب نزول" hidden>📜</span></span>'
       +'<div class="bd"><span class="txt">'+esc(a.t)+'</span>'
       +'<div class="taf"><div class="taf-h"><div class="tt" role="group"><button data-ttab="t" aria-pressed="true">📖 التفسير</button><button data-ttab="s" id="tbs'+i+'" aria-pressed="false" hidden>📜 سبب النزول</button></div><button class="btn" data-hear="'+i+'" aria-label="اسمع الآية" title="اسمع الآية">🔊</button></div>'
       +'<div class="taf-t" id="tt'+i+'"></div><div class="taf-s" id="ts'+i+'" hidden></div>'
@@ -500,7 +680,7 @@ function renderList(){
   }
   $('#list').innerHTML=h;markAsb();
 }
-function updateDot(i){var d=$('#dot'+i);if(d)d.className='dot '+stat(cur.num,i)}
+function updateDot(i){var d=$('#dot'+i);if(d)d.className='dot '+dotCls(cur.num,i)}
 function highlight(i){
   document.querySelectorAll('.ay.on').forEach(function(e){e.classList.remove('on')});
   var el=$('#ay'+i);
@@ -609,7 +789,7 @@ function buildQueue(){
   if(t>f)for(r=1;r<=link;r++)for(i=f;i<=t;i++)q.push({i:i,r:r,rounds:link,ph:'link'});
   return q;
 }
-function setStatus(t){$('#status').textContent=t}
+function setStatus(t){$('#status').textContent=t;var c=$('#carStatusSub');if(c)c.textContent=t}
 function itemStatus(it){
   if(it.surah)return 'سورة '+cur.name+' بصوت إسلام صبحي'+(it.rounds>1?' — مرة '+ar(it.r)+' من '+ar(it.rounds):'');
   var s='آية '+ar(it.i);
@@ -622,8 +802,13 @@ function itemStatus(it){
 function startItem(){
   clearTimeout(gapTimer);
   if(qi>=queue.length){
-    state='stopped';wake(false);
+    /* a single ayah tapped from the list never loops or moves on */
+    var single=queue.length===1&&queue[0]&&queue[0].single,after=$('#afterMode').value;
+    if(!single&&queue.length&&after==='loop'){qi=0;state='playing';wake(true);startItem();return}
+    if(!single&&queue.length&&after==='next'){advanceToNext();return}
+    state='stopped';if(!carOpen())wake(false);
     setStatus(queue.length>1?'خلص المقطع. جرّب تسمّعه من تبويب التسميع.':'');
+    updateCarDisplay();updateMediaSession(null);
     return;
   }
   var it=queue[qi];
@@ -631,12 +816,26 @@ function startItem(){
   audio.defaultPlaybackRate=rate();audio.playbackRate=rate();
   if(!it.surah)highlight(it.i);
   setStatus(itemStatus(it));
+  updateCarDisplay();updateMediaSession(it);
   var p=audio.play();
   if(p&&p.catch)p.catch(function(err){
     if(err&&err.name==='AbortError')return;
-    state='paused';
+    state='paused';updateCarDisplay();
     showErr('الصوت ما اشتغلش. اتأكد من الإنترنت واضغط تشغيل تاني.');
   });
+}
+/* "يكمّل اللي بعده": the next stretch of the same length, then the next surah (الناس ← الفلق ← ... ← النبأ ← الناس) */
+function advanceToNext(){
+  if(!cur)return;
+  var f=rangeFrom(),t=rangeTo(),span=t-f+1;
+  if(!isSobhy()&&t<cur.count){
+    $('#from').value=t+1;$('#to').value=Math.min(cur.count,t+span);
+    renderList();queue=buildQueue();qi=0;state='playing';wake(true);startItem();
+    return;
+  }
+  var ord=SURAHS.slice().reverse(),ix=ord.findIndex(function(x){return x[0]===cur.num});
+  var nx=ord[(ix+1)%ord.length][0];
+  $('#surah').value=nx;loadSurah(nx,1,null,true);
 }
 audio.addEventListener('ended',function(){
   if(state!=='playing')return;
@@ -650,7 +849,7 @@ audio.addEventListener('ended',function(){
 });
 audio.addEventListener('error',function(){
   if(state!=='playing')return;
-  state='paused';
+  state='paused';updateCarDisplay();
   showErr('تعذر تحميل الصوت. اتأكد من الإنترنت واضغط تشغيل تاني.');
 });
 function stopAll(){
@@ -659,14 +858,15 @@ function stopAll(){
   queue=[];qi=0;$('#seek').value=0;
   document.querySelectorAll('.ay.on').forEach(function(e){e.classList.remove('on')});
   setStatus('اختار المقطع واضغط تشغيل');
-  if(!isListening())wake(false);
+  updateCarDisplay();
+  if(!isListening()&&!carOpen())wake(false);
 }
 function playRange(){
   if(!cur)return;
   showErr('');adkStop();
   if(state==='paused'&&queue.length){
     state='playing';wake(true);
-    setStatus(itemStatus(queue[qi]));
+    setStatus(itemStatus(queue[qi]));updateCarDisplay();updateMediaSession(queue[qi]);
     var p=audio.play();if(p&&p.catch)p.catch(function(){startItem()});
     return;
   }
@@ -674,10 +874,24 @@ function playRange(){
   queue=buildQueue();qi=0;state='playing';wake(true);startItem();
 }
 function pauseAudio(){
-  if(state==='playing'){state='paused';audio.pause();clearTimeout(gapTimer);wake(false);setStatus('متوقف مؤقتاً — اضغط تشغيل للمتابعة')}
+  if(state==='playing'){
+    state='paused';audio.pause();clearTimeout(gapTimer);if(!carOpen())wake(false);
+    setStatus('متوقف مؤقتاً — اضغط تشغيل للمتابعة');updateCarDisplay();updateMediaSession(queue[qi]);
+  }
+}
+function prevAyah(){
+  if(!cur)return;
+  if(!queue.length){playRange();return}
+  var it=queue[qi]||queue[0],j=qi;
+  if(it.surah){if(isFinite(audio.duration))audio.currentTime=Math.max(0,audio.currentTime-15);return}
+  function same(a,b){return a.i===b.i&&a.ph===b.ph&&a.r===b.r}
+  while(j>0&&same(queue[j-1],it))j--;
+  if(j>0){var pv=queue[j-1];while(j>0&&same(queue[j-1],pv))j--}
+  qi=j;state='playing';wake(true);startItem();
 }
 function nextAyah(){
-  if(!queue.length)return;
+  if(!cur)return;
+  if(!queue.length){playRange();return}
   var it=queue[qi]||queue[queue.length-1],j=qi;
   if(it.surah){
     if(isFinite(audio.duration))audio.currentTime=Math.min(audio.duration-0.5,audio.currentTime+15);
@@ -689,6 +903,101 @@ function nextAyah(){
 function playOne(i){
   killListen();stopAll();adkStop();showErr('');
   queue=[{i:i,single:true}];qi=0;state='playing';startItem();
+}
+
+/* ---------- Lock screen / car display (Media Session) ----------
+   Chrome shows this in the phone's media notification; cars that read media info over Bluetooth
+   or Android Auto may show the title and use the steering-wheel buttons. The page itself never
+   appears on the car screen. */
+var artCanvas=document.createElement('canvas');artCanvas.width=512;artCanvas.height=512;
+var artKey='',artUrl='';
+function ayahArtwork(name,i,text,sub){
+  var key=name+'|'+i+'|'+sub;if(key===artKey)return artUrl;
+  try{
+    var ctx=artCanvas.getContext('2d');if(!ctx)return '';
+    var g=ctx.createLinearGradient(0,0,0,512);g.addColorStop(0,'#0d5a43');g.addColorStop(1,'#0a2a20');
+    ctx.fillStyle=g;ctx.fillRect(0,0,512,512);
+    ctx.strokeStyle='#d6b26a';ctx.lineWidth=4;ctx.strokeRect(18,18,476,476);
+    ctx.direction='rtl';ctx.textAlign='center';
+    ctx.fillStyle='#e7c77c';ctx.font='700 28px Cairo, sans-serif';
+    ctx.fillText('سورة '+name+(i?' — آية '+ar(i):''),256,66);
+    ctx.fillStyle='#ffffff';
+    var words=(text||'').split(' '),fs=words.length>20?28:(words.length>12?34:40);
+    ctx.font=fs+'px "Amiri Quran","Traditional Arabic",serif';
+    var lines=[],line='';
+    words.forEach(function(w){var t=line?line+' '+w:w;if(ctx.measureText(t).width>440&&line){lines.push(line);line=w}else line=t});
+    if(line)lines.push(line);
+    var lh=fs*1.55,y=Math.max(140,262-lines.length*lh/2+fs/2);
+    for(var l=0;l<lines.length&&l<7;l++)ctx.fillText(lines[l],256,y+l*lh);
+    if(sub){ctx.fillStyle='#b6c7bf';ctx.font='600 22px Cairo, sans-serif';ctx.fillText(sub,256,472)}
+    artKey=key;artUrl=artCanvas.toDataURL('image/png');return artUrl;
+  }catch(e){return ''}
+}
+var VOICE_NAMES={alafasy:'مشاري العفاسي',husary:'محمود خليل الحصري',minshawi:'محمد صديق المنشاوي',sobhy:'إسلام صبحي'};
+function updateMediaSession(it){
+  if(!('mediaSession' in navigator)||!window.MediaMetadata||!cur||adkCur)return;
+  try{
+    var n=it&&!it.surah?it.i:null,txt=n?ayah(n).t:'سورة '+cur.name+' كاملة';
+    var sub=it?itemStatus(it).replace(/\s*\[.*\]$/,''):'سورة '+cur.name;
+    var art=ayahArtwork(cur.name,n,txt+(n?' ﴿'+ar(n)+'﴾':''),sub);
+    var who=it&&it.single&&isSobhy()?'مشاري العفاسي':(VOICE_NAMES[voice()]||'');
+    var m={title:n?txt+' ﴿'+ar(n)+'﴾':'سورة '+cur.name,artist:'سورة '+cur.name+' — '+who,album:sub};
+    m.artwork=art?[{src:art,sizes:'512x512',type:'image/png'}]:[{src:'icon-512.png',sizes:'512x512',type:'image/png'}];
+    navigator.mediaSession.metadata=new MediaMetadata(m);
+    navigator.mediaSession.playbackState=state==='playing'?'playing':(state==='paused'?'paused':'none');
+  }catch(e){}
+}
+(function(){
+  if(!('mediaSession' in navigator))return;
+  /* the same buttons drive the adhkar player while it is the one playing */
+  function h(a,f){try{navigator.mediaSession.setActionHandler(a,f)}catch(e){}}
+  h('play',function(){if(adkCur)adkAudio.play().catch(function(){});else playRange()});
+  h('pause',function(){if(adkCur)adkAudio.pause();else pauseAudio()});
+  h('nexttrack',function(){if(adkCur)adkAudio.currentTime=Math.min(adkAudio.duration||0,adkAudio.currentTime+15);else nextAyah()});
+  h('previoustrack',function(){if(adkCur)adkAudio.currentTime=Math.max(0,adkAudio.currentTime-15);else prevAyah()});
+  h('stop',function(){if(adkCur)adkStop();else stopAll()});
+})();
+
+/* ---------- Driving mode ---------- */
+function carOpen(){var o=document.getElementById('carOverlay');return !!o&&!o.hidden}
+function carIndex(){
+  if(!cur)return 1;
+  if(queue.length&&queue[qi]&&!queue[qi].surah)return queue[qi].i;
+  return rangeFrom();
+}
+var AFTER_TXT={loop:'🔁 يعيد المقطع',next:'⏭ يكمّل اللي بعده',stop:'⏹ يقف في الآخر'};
+function updateAfterModeUI(){
+  var m=$('#afterMode').value,b=$('#bCarAfterToggle');
+  b.textContent=AFTER_TXT[m]||AFTER_TXT.stop;b.className='car-pill'+(m==='stop'?'':' active');
+}
+function updateCarDisplay(){
+  if(!cur||!carOpen())return;
+  var it=queue[qi],i=carIndex();
+  $('#carSurahTitle').textContent='سورة '+cur.name+(rangeFrom()===rangeTo()?' — آية '+ar(rangeFrom()):' — من '+ar(rangeFrom())+' إلى '+ar(rangeTo()));
+  $('#carStatusSub').textContent=$('#status').textContent;
+  if(it&&it.surah){
+    $('#carAyahTxt').innerHTML='سورة '+esc(cur.name)+' كاملة <span class="car-num">بصوت إسلام صبحي</span>';
+    $('#carNextTxt').textContent='';
+  }else{
+    var a=ayah(i);
+    if(a){
+      $('#carAyahTxt').innerHTML=esc(a.t)+' <span class="car-num">﴿'+ar(i)+'﴾</span>';
+      $('#carNextTxt').textContent=i<cur.count?'اللي بعدها: '+ayah(i+1).t+' ﴿'+ar(i+1)+'﴾':'آخر آية في السورة';
+    }
+  }
+  $('#bCarPlayPause').innerHTML=state==='playing'?'⏸<span>إيقاف مؤقت</span>':'▶<span>تشغيل</span>';
+  var ok=stat(cur.num,i)==='ok',mk=$('#bCarMarkOk');
+  mk.innerHTML=ok?'✓<span>محفوظة</span>':'✓<span>حفظتها</span>';mk.classList.toggle('on',ok);
+  updateAfterModeUI();
+}
+function openCarMode(){
+  $('#carOverlay').hidden=false;wake(true);
+  if(state!=='playing')playRange();
+  updateCarDisplay();
+}
+function closeCarMode(){
+  $('#carOverlay').hidden=true;
+  if(state!=='playing'&&!isListening())wake(false);
 }
 
 /* ---------- Recitation check ---------- */
@@ -979,7 +1288,7 @@ function killListen(){
     if(R.listen){R.listen=false;R.token++;clearTimeout(R.tick);R.tick=0;var r=R.rec;R.rec=null;try{if(r)r.abort()}catch(e){}}
     stopCapture(R,false);R.finalizing=false;
   }
-  if(state!=='playing')wake(false);
+  if(state!=='playing'&&!carOpen())wake(false);
 }
 function resetT(){killListen();T=null;renderTest()}
 
@@ -989,6 +1298,7 @@ function startTest(mode){
   var list=[],i;
   if(mode==='all')for(i=1;i<=cur.count;i++)list.push(i);
   else if(mode==='rev'){for(i=1;i<=cur.count;i++)if(stat(cur.num,i)==='rev')list.push(i)}
+  else if(mode==='due'){for(i=1;i<=cur.count;i++)if(stat(cur.num,i)==='rev'||isDueReview(cur.num,i))list.push(i)}
   else for(i=rangeFrom();i<=rangeTo();i++)list.push(i);
   if(!list.length)return;
   /* Flat list of every word in the selection, tagged with its ayah */
@@ -1155,6 +1465,7 @@ function segHtml(res,from,to,pending,lastOk){
     if(!x.e){h.push(esc(x.w));continue}
     if(pending&&q>lastOk)h.push('<span style="color:var(--mut)">▢</span>');
     else if(pending&&!res[q])h.push('<span class="wmiss">▢</span>');
+    else if(!pending&&lastOk===-2)h.push('<span class="wfix '+(res[q]?'wok':'wmiss')+'" data-widx="'+q+'">'+esc(x.w)+'</span>');
     else h.push('<span class="'+(res[q]?'wok':'wmiss')+'">'+esc(x.w)+'</span>');
   }
   return h.join(' ');
@@ -1163,12 +1474,13 @@ function scopeText(){
   var a=T.list[0],b=T.list[T.list.length-1];
   var n=T.list.length,cnt=n===1?'آية واحدة':n===2?'آيتين':ar(n)+(n<=10?' آيات':' آية');
   if(T.mode==='rev')return cnt+' محتاجة مراجعة';
+  if(T.mode==='due')return cnt+' جه وقت مراجعتها';
   if(T.mode==='all')return 'سورة '+cur.name+' كاملة ('+cnt+')';
   return n===1?'آية '+ar(a):'من آية '+ar(a)+' إلى آية '+ar(b)+' ('+cnt+')';
 }
 function cueHtml(){
   var a=T.list[0];
-  if(T.mode==='rev')return '';
+  if(T.mode==='rev'||T.mode==='due')return '';
   return a>1?'<div class="small">اللي قبلها:</div><div class="cue">'+esc(ayah(a-1).t)+' <span class="num">﴿'+ar(a-1)+'﴾</span></div>'
             :'<div class="small">أول السورة، ابدأ من غير تلميح.</div>';
 }
@@ -1178,11 +1490,13 @@ function renderTest(){
 
   /* 1) choose what to recite */
   if(!T){
-    var revN=countStat(cur.num,'rev');
+    var revN=countStat(cur.num,'rev'),dueN=0;
+    for(var di=1;di<=cur.count;di++)if(stat(cur.num,di)==='rev'||isDueReview(cur.num,di))dueN++;
     box.innerHTML='<p style="margin:0">اختار اللي هتسمّعه، وبعدين اقراه كله على بعض في الميكروفون والتطبيق يقارنه كلمة كلمة.</p>'
       +'<button class="btn pri wide" data-act="startTest" data-mode="range">المقطع المحدد ('+(rangeFrom()===rangeTo()?'آية '+ar(rangeFrom()):'آية '+ar(rangeFrom())+' إلى '+ar(rangeTo()))+')</button>'
       +'<button class="btn wide" data-act="startTest" data-mode="all">سورة '+esc(cur.name)+' كاملة</button>'
       +(revN?'<button class="btn warn wide" data-act="startTest" data-mode="rev">الآيات اللي محتاجة مراجعة بس ('+ar(revN)+')</button>':'')
+      +(dueN>revN?'<button class="btn wide" data-act="startTest" data-mode="due">🔄 المراجعة المتباعدة: اللي جه وقتها ('+ar(dueN)+')</button>':'')
       +'<div class="small">تقدر تغيّر "من آية / إلى آية" فوق عشان تسمّع آية واحدة أو اتنين أو أكتر.</div>';
     return;
   }
@@ -1241,13 +1555,13 @@ function renderTest(){
     rows.forEach(function(a){
       var g=T.grades[a.i];
       h+='<div class="resA">'
-        +'<div class="txt">'+segHtml(T.res,a.from,a.to,false,-1)+' <span class="num">﴿'+ar(a.i)+'﴾</span></div>'
+        +'<div class="txt">'+segHtml(T.res,a.from,a.to,false,-2)+' <span class="num">﴿'+ar(a.i)+'﴾</span></div>'
         +'<div class="row"><span class="small" style="flex:1;align-self:center">'+(a.ok===a.n?'كاملة':'ناقص '+ar(a.n-a.ok)+' من '+ar(a.n))+'</span>'
         +'<button class="btn" data-act="hearI" data-i="'+a.i+'" style="flex:0 0 auto">🔊</button>'
         +'<button class="btn '+(g==='ok'?'ok':'warn')+'" data-act="flip" data-i="'+a.i+'" style="flex:0 0 auto">'+(g==='ok'?'حافظها ✓':'مراجعة ✗')+'</button></div>'
         +'</div>';
     });
-    h+='<div class="small">التعرف على الصوت ممكن يعلّم كلمة سليمة بالأحمر. اضغط على زرار التقييم جنب أي آية لو عايز تغيّره قبل الحفظ.</div>'
+    h+='<div class="small">التعرف على الصوت ممكن يعلّم كلمة سليمة بالأحمر. اضغط على الكلمة نفسها عشان تصححها، أو على زرار التقييم جنب الآية، قبل الحفظ.</div>'
       +'<details class="small"><summary>اللي التطبيق سمعه</summary>'
         +(T.heard?'<div class="heard">'+(T.wheard?'<b>Chrome:</b> ':'')+esc(T.heard)+'</div>':'')
         +(T.wheard?'<div class="heard"><b>نموذج القرآن:</b> '+esc(T.wheard)+'</div>':'')
@@ -1275,6 +1589,14 @@ function renderTest(){
   box.innerHTML=h;
 }
 function testClick(e){
+  var wf=e.target.closest('[data-widx]');
+  if(wf&&T&&T.res){
+    /* manual fix: flip one word, then re-grade only its ayah */
+    var q=parseInt(wf.getAttribute('data-widx'),10),ai=T.E[q].i;
+    T.res[q]=T.res[q]?0:1;
+    perAyah(T.res).forEach(function(a){if(a.i===ai)T.grades[ai]=a.ok===a.n?'ok':'rev'});
+    renderTest();return;
+  }
   var b=e.target.closest('[data-act]');if(!b)return;
   var act=b.getAttribute('data-act');
   if(act==='startTest'){startTest(b.getAttribute('data-mode'));return}
@@ -1296,18 +1618,21 @@ function testClick(e){
   else if(act==='save'){
     T.list.forEach(function(i){setStat(cur.num,i,T.grades[i]);updateDot(i)});
     T.done=T.grades;T.res=null;T.R=null;T.shown=0;T.peek=false;
-    fillSurah();overall();renderTest();
+    fillSurah();overall();renderTest();renderPlan();
   }
 }
 
 /* ---------- Wiring ---------- */
 function switchTab(t){
-  $('#paneH').hidden=t!=='h';$('#paneT').hidden=t!=='t';$('#paneA').hidden=t!=='a';
+  $('#paneH').hidden=t!=='h';$('#paneT').hidden=t!=='t';$('#paneA').hidden=t!=='a';$('#paneP').hidden=t!=='p';
   $('#tabH').setAttribute('aria-selected',t==='h');
   $('#tabT').setAttribute('aria-selected',t==='t');
   $('#tabA').setAttribute('aria-selected',t==='a');
+  $('#tabP').setAttribute('aria-selected',t==='p');
   saveUI({tab:t});
   document.body.classList.toggle('adk-mode',t==='a');
+  document.body.classList.toggle('plan-mode',t==='p');
+  if(t==='p'){overall();renderPlan()}
   if(t!=='t')killListen();
   if(t==='t'){
     var e=engine();if(e!=='chrome'&&asrCached(e))asrLoad(e);
@@ -1325,6 +1650,7 @@ function moreSum(){
   var parts=[NAMES[voice()]||'']; 
   if(isSobhy())parts.push('السورة '+t('link'));else parts.push('كل آية '+t('rep'),'ربط '+t('link'));
   parts.push(t('speed'));if($('#echo').value==='1')parts.push('ترديد');
+  parts.push({loop:'يعيد',next:'يكمّل',stop:'يقف'}[$('#afterMode').value]||'');
   $('#moreSum').textContent='— '+parts.join(' · ');
 }
 function updateVoiceUI(){
@@ -1342,6 +1668,8 @@ SETTINGS.forEach(function(id){
     if(id==='voice'){stopAll();updateVoiceUI()}
     if(id==='speed'){audio.defaultPlaybackRate=rate();audio.playbackRate=rate()}
     moreSum();
+    if(id==='dailyGoal'){updateHeaderBadges();renderPlan()}
+    if(id==='afterMode')updateAfterModeUI();
     if(id==='engine'){
       if(isListening()){killListen();T.R=null}
       if(MODELS[this.value]&&asrCached(this.value)&&CAN_REC)asrLoad(this.value);
@@ -1373,6 +1701,8 @@ $('#to').addEventListener('change',function(){
   rangeChanged();
 });
 $('#list').addEventListener('click',function(e){
+  var dot=e.target.closest('[data-dot]');
+  if(dot){cycleStat(cur.num,parseInt(dot.getAttribute('data-dot'),10));return}
   var hear=e.target.closest('[data-hear]');
   if(hear){playOne(parseInt(hear.getAttribute('data-hear'),10));return}
   var tt=e.target.closest('[data-ttab]');
@@ -1395,6 +1725,110 @@ $('#bPlay').addEventListener('click',playRange);
 $('#bPause').addEventListener('click',pauseAudio);
 $('#bNext').addEventListener('click',nextAyah);
 $('#bStop').addEventListener('click',stopAll);
+$('#bCarOpen').addEventListener('click',openCarMode);
+$('#bCarBar').addEventListener('click',openCarMode);
+$('#bCarClose').addEventListener('click',closeCarMode);
+$('#bCarPlayPause').addEventListener('click',function(){if(state==='playing')pauseAudio();else playRange()});
+$('#bCarNext').addEventListener('click',nextAyah);
+$('#bCarPrev').addEventListener('click',prevAyah);
+$('#bCarMarkOk').addEventListener('click',function(){
+  if(!cur)return;
+  var i=carIndex();
+  if(stat(cur.num,i)==='ok'){delete store[cur.num+':'+i];saveStore()}else setStat(cur.num,i,'ok');
+  updateDot(i);fillSurah();overall();renderPlan();updateCarDisplay();
+});
+$('#bCarAfterToggle').addEventListener('click',function(){
+  var o=['loop','next','stop'],s=$('#afterMode'),v=o[(o.indexOf(s.value)+1)%o.length];
+  s.value=v;saveUI({afterMode:v});moreSum();updateAfterModeUI();
+});
+
+/* ---------- Daily plan & spaced review ---------- */
+function renderPlan(){
+  var box=$('#planBox');if(!box||$('#paneP').hidden)return;
+  var g=goal(),ord=SURAHS.slice().reverse(),wird=null,weak=null,due=null;
+  for(var x=0;x<ord.length&&!wird;x++){
+    var s=ord[x],f=firstTodo(s[0],s[2]);
+    if(stat(s[0],f)!=='ok')wird={num:s[0],name:s[1],from:f,to:Math.min(s[2],f+g-1)};
+  }
+  ord.forEach(function(s){
+    var r=0,d=0;
+    for(var i=1;i<=s[2];i++){var v=stat(s[0],i);if(v==='rev')r++;else if(v==='ok'&&isDueReview(s[0],i))d++}
+    if(r&&!weak)weak={num:s[0],name:s[1],n:r};
+    if(d&&!due)due={num:s[0],name:s[1],n:d};
+  });
+  var h='<b>خطة النهارده</b>';
+  h+=wird?'<div class="plan-item"><div class="plan-item-info"><span class="plan-item-title">🌱 حفظ جديد: سورة '+esc(wird.name)+'</span>'
+      +'<span class="plan-item-sub">'+(wird.to>wird.from?'من آية '+ar(wird.from)+' إلى '+ar(wird.to):'آية '+ar(wird.from))+'</span></div>'
+      +'<button class="btn pri" type="button" data-plan="wird" data-s="'+wird.num+'" data-f="'+wird.from+'" data-t="'+wird.to+'">ابدأ</button></div>'
+    :'<div class="plan-item"><div class="plan-item-info"><span class="plan-item-title">🎉 ما شاء الله، خلصت حفظ جزء عمّ</span><span class="plan-item-sub">كمّل المراجعة عشان يفضل ثابت</span></div></div>';
+  if(weak)h+='<div class="plan-item"><div class="plan-item-info"><span class="plan-item-title">⚠️ تثبيت: سورة '+esc(weak.name)+'</span>'
+      +'<span class="plan-item-sub">'+ar(weak.n)+' آية معلّم عليها «مراجعة»</span></div>'
+      +'<button class="btn warn" type="button" data-plan="rev" data-s="'+weak.num+'">سمّعها</button></div>';
+  if(due)h+='<div class="plan-item"><div class="plan-item-info"><span class="plan-item-title">🔄 مراجعة: سورة '+esc(due.name)+'</span>'
+      +'<span class="plan-item-sub">'+ar(due.n)+' آية محفوظة جه وقت مراجعتها</span></div>'
+      +'<button class="btn ok" type="button" data-plan="due" data-s="'+due.num+'">راجع</button></div>';
+  else h+='<div class="small">مفيش آيات جه وقت مراجعتها النهارده. كل آية تحفظها بترجعلك بعد يوم، وبعدين ٣ أيام، وبعدين أسبوع، وأسبوعين، وشهر، وشهرين. الآيات اللي جه وقتها بيبقى حوالين رقمها إطار دهبي.</div>';
+  box.innerHTML=h;
+}
+$('#planBox').addEventListener('click',async function(e){
+  var b=e.target.closest('[data-plan]');if(!b)return;
+  var type=b.getAttribute('data-plan'),s=parseInt(b.getAttribute('data-s'),10);
+  $('#surah').value=s;
+  if(type==='wird'){
+    await loadSurah(s,parseInt(b.getAttribute('data-f'),10),parseInt(b.getAttribute('data-t'),10));
+    switchTab('h');renderList();
+  }else{
+    await loadSurah(s);
+    if(!cur||cur.num!==s)return;
+    switchTab('t');startTest(type);
+  }
+});
+
+/* ---------- Backup ---------- */
+function showToast(m){var el=$('#backupToast');el.textContent=m;el.hidden=false;clearTimeout(showToast.t);showToast.t=setTimeout(function(){el.hidden=true},4000)}
+function backupPayload(){return JSON.stringify({app:'hifz',version:2,exportedAt:new Date().toISOString(),store:store,ui:loadUI(),act:loadActivity()},null,1)}
+function applyBackup(raw){
+  try{
+    var o=JSON.parse(String(raw||'').trim()),ns=o&&o.store;
+    if(!ns||typeof ns!=='object'||Array.isArray(ns))throw new Error('bad');
+    for(var k in ns){if(!/^\d+:\d+$/.test(k)||!ns[k]||typeof ns[k].s!=='string')throw new Error('bad')}
+    store=ns;saveStore();
+    if(o.ui&&typeof o.ui==='object')saveUI(o.ui);
+    if(o.act&&typeof o.act==='object')saveActivity(o.act);
+    fillSurah();overall();renderList();renderPlan();renderTest();
+    showToast('✓ رجع التقدم. لو الإعدادات اتغيرت، افتح التطبيق تاني.');
+    return true;
+  }catch(e){showToast('⚠️ الكود أو الملف مش صالح. اتأكد إنك نسخته كله.');return false}
+}
+$('#bExportFile').addEventListener('click',function(){
+  var blob=new Blob([backupPayload()],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='hifz-juz-amma-'+todayKey()+'.json';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url)},1000);
+  showToast('✓ الملف اتحمّل على الجهاز.');
+});
+$('#bImportFileBtn').addEventListener('click',function(){$('#importFileInput').click()});
+$('#importFileInput').addEventListener('change',function(){
+  var f=this.files&&this.files[0];this.value='';if(!f)return;
+  var rd=new FileReader();rd.onload=function(ev){applyBackup(ev.target.result)};rd.readAsText(f);
+});
+$('#bCopyCode').addEventListener('click',function(){
+  var d=backupPayload();
+  function manual(){$('#pasteArea').hidden=false;var t=$('#backupText');t.value=d;t.focus();t.select();
+    try{document.execCommand('copy');showToast('✓ الكود اتنسخ.')}catch(e){showToast('حدد الكود وانسخه بإيدك.')}}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(d).then(function(){showToast('✓ الكود اتنسخ.')},manual);
+  else manual();
+});
+$('#bTogglePaste').addEventListener('click',function(){var p=$('#pasteArea');p.hidden=!p.hidden;if(!p.hidden){$('#backupText').value='';$('#backupText').focus()}});
+$('#bClosePaste').addEventListener('click',function(){$('#pasteArea').hidden=true});
+$('#bApplyCode').addEventListener('click',function(){if(applyBackup($('#backupText').value))$('#pasteArea').hidden=true});
+
+/* ---------- Theme ---------- */
+function applyTheme(t){if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme')}
+$('#bTheme').addEventListener('click',function(){
+  var c=document.documentElement.getAttribute('data-theme');
+  var dark=c==='dark'||(!c&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+  var nx=dark?'light':'dark';applyTheme(nx);saveUI({theme:nx});
+});
 
 /* ---------- Morning & evening adhkar (play offline once saved on the device) ---------- */
 /* Alafasy files: archive.org item TvQuran.com__Athkar (athkar_03 = morning, athkar_04 = evening).
@@ -1584,20 +2018,21 @@ function renderAdk(){
 
 /* ---------- Start ---------- */
 var ui=loadUI();
+if(ui.theme)applyTheme(ui.theme);
 SETTINGS.forEach(function(id){
   if(ui[id]==null)return;
   var sel=$('#'+id);
   for(var k=0;k<sel.options.length;k++)if(sel.options[k].value===String(ui[id])){sel.value=ui[id];break}
 });
 if(ui.hide){$('#hide').checked=true;$('#list').classList.add('hide');$('#hideNote').hidden=false}
-updateVoiceUI();updateAsrUI();
+updateVoiceUI();updateAsrUI();updateAfterModeUI();
 fillSurah();overall();
 var startSurah=meta(ui.s)?ui.s:114;
 $('#surah').value=startSurah;
 loadSurah(startSurah);
 adkInit();
 loadAsbab().catch(function(){});
-if(ui.tab==='t'||ui.tab==='a')switchTab(ui.tab);
+if(ui.tab==='t'||ui.tab==='a'||ui.tab==='p')switchTab(ui.tab);
 /* offline: cache the app itself so it opens without internet */
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
   navigator.serviceWorker.register('sw.js').catch(function(){});
