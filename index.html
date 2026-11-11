@@ -270,6 +270,57 @@ textarea{width:100%;font:inherit;font-size:.85rem;padding:10px;border-radius:12p
 .car-btn:active{transform:scale(.98)}
 .car-pill:focus-visible,.car-btn:focus-visible{outline:3px solid #e7c77c;outline-offset:2px}
 .car-hint{font-size:.78rem;color:#7f9c90;text-align:center;margin-top:6px}
+/* ===== v6 polish ===== */
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px 7px;font-size:.8rem;line-height:1.2}
+.tab svg{width:21px;height:21px;stroke-width:1.8;transition:transform .2s}
+.tab[aria-selected="true"] svg{transform:translateY(-1px)}
+.tab[aria-selected="true"]{background:var(--card);color:var(--acc)}
+.hero .greet{font-size:.78rem;font-weight:700;color:#f3dfa6;letter-spacing:.2px;margin-bottom:2px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.hero .greet i{font-style:normal;opacity:.75;font-weight:600;color:#fff}
+.hbtn.icon{display:inline-grid;place-items:center;width:34px;height:30px;padding:0}
+.hbtn.icon svg{width:17px;height:17px}
+.hbtn.car{display:inline-flex;align-items:center;gap:6px}
+.hbtn.car svg{width:17px;height:17px}
+#msg{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;font-size:.9rem;font-weight:600;line-height:1.75;
+  background:color-mix(in srgb,var(--warn) 11%,var(--card));border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);color:var(--fg)}
+#msg::before{content:"!";flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--warn);color:#fff;font-weight:800;font-size:.85rem;margin-top:2px}
+.ctrl .btn{display:inline-flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:center;gap:5px}
+.ctrl .side svg{width:15px;height:15px}
+.ctrl .btn svg{width:18px;height:18px;flex:none}
+.ctrl #bPlay svg{width:20px;height:20px}
+.status{font-size:.86rem}
+.foot{padding:0}
+.foot details{border-top:1px solid var(--line);padding-top:10px}
+.foot summary{list-style:none;display:inline-flex;align-items:center;gap:6px;font-weight:700;cursor:pointer;color:var(--mut)}
+.foot summary::-webkit-details-marker{display:none}
+.foot summary svg{width:15px;height:15px}
+.foot details[open] summary{margin-bottom:6px}
+.foot p{margin:0;text-align:start}
+/* adhkar */
+.adk-hero{position:relative;overflow:hidden;border-radius:18px;padding:16px;color:#fff;box-shadow:var(--shadow);
+  background:radial-gradient(circle at 85% -20%,rgba(255,226,150,.55),transparent 55%),linear-gradient(155deg,#c08a2e,#8a5a17)}
+.adk-hero.night{background:radial-gradient(circle at 15% -20%,rgba(160,190,255,.35),transparent 55%),linear-gradient(155deg,#243b6b,#101a35)}
+.adk-hero b{display:block;font-size:1.2rem;font-weight:800}
+.adk-hero span{font-size:.85rem;opacity:.9}
+.adk-hero .big{position:absolute;inset-inline-end:14px;top:50%;transform:translateY(-50%);font-size:2.6rem;opacity:.9}
+.vlabel{font-size:.8rem;font-weight:700;color:var(--mut)}
+.vpick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vpick::-webkit-scrollbar{display:none}
+.vbtn{min-width:0;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:14px;border:1.5px solid var(--line);background:var(--soft);color:var(--fg);font:inherit;cursor:pointer;text-align:start;transition:border-color .2s,background .2s}
+.vbtn .av{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.95rem;color:#fff;background:linear-gradient(150deg,var(--acc),var(--acc2))}
+.vbtn .vt{display:flex;flex-direction:column;line-height:1.35;min-width:0;flex:1}
+.vbtn .vt b{font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbtn .vt small{font-size:.7rem;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vbtn:last-child:nth-child(odd){grid-column:1/-1}
+.vbtn[aria-pressed="true"]{border-color:var(--acc);background:var(--hl)}
+.vbtn[aria-pressed="true"] .vt b{color:var(--acc)}
+.vbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.vbtn.file .av{background:linear-gradient(150deg,var(--gold),#8a6a2a)}
+.vbtn .ok-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);margin-inline-start:2px}
+.adk.sabah{background:linear-gradient(165deg,color-mix(in srgb,var(--gold) 9%,var(--card)),var(--card) 55%)}
+.adk.masa{background:linear-gradient(165deg,color-mix(in srgb,#4060c0 9%,var(--card)),var(--card) 55%)}
+.adk.masa .adk-ic{background:color-mix(in srgb,#4060c0 16%,var(--card))}
+.adk.now{box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 22%,transparent),var(--shadow)}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -279,6 +330,7 @@ textarea{width:100%;font:inherit;font-size:.85rem;padding:10px;border-radius:12p
   <header class="hero">
     <div class="in">
       <div>
+        <div class="greet" id="greet"></div>
         <h1>حفظ جزء عمّ</h1>
         <div class="sub" id="allTxt"></div>
       </div>
@@ -288,16 +340,16 @@ textarea{width:100%;font:inherit;font-size:.85rem;padding:10px;border-radius:12p
     <div class="hero-acts">
       <span class="hbadge" id="streakBadge" title="أيام متتالية سمّعت فيها">🔥 ٠ يوم</span>
       <span class="hbadge" id="todayBadge" title="الآيات اللي قيّمتها النهارده">النهارده ٠/٥</span>
-      <button class="hbtn car" id="bCarOpen" type="button">🚗 وضع القيادة</button>
-      <button class="hbtn" id="bTheme" type="button" aria-label="تغيير المظهر فاتح/غامق">🌓</button>
+      <button class="hbtn car" id="bCarOpen" type="button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M3.5 17v-4l2-5.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5l2 5.5v4"/><path d="M3.5 13h17"/><circle cx="7.5" cy="17" r="2" fill="currentColor"/><circle cx="16.5" cy="17" r="2" fill="currentColor"/></svg> وضع القيادة</button>
+      <button class="hbtn icon" id="bTheme" type="button" aria-label="تغيير المظهر فاتح/غامق"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 000 18z" fill="currentColor"/></svg></button>
     </div>
   </header>
 
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" id="tabH" aria-selected="true" data-tab="h">📖 حفظ</button>
-    <button class="tab" role="tab" id="tabT" aria-selected="false" data-tab="t">🎤 تسميع</button>
-    <button class="tab" role="tab" id="tabA" aria-selected="false" data-tab="a">🤲 أذكار</button>
-    <button class="tab" role="tab" id="tabP" aria-selected="false" data-tab="p">📅 الورد</button>
+    <button class="tab" role="tab" id="tabH" aria-selected="true" data-tab="h"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5C4.5 4 8 4 12 6c4-2 7.5-2 10-.5V19c-2.5-1.5-6-1.5-10 .5-4-2-7.5-2-10-.5z"/><path d="M12 6v13.5"/></svg><span>حفظ</span></button>
+    <button class="tab" role="tab" id="tabT" aria-selected="false" data-tab="t"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3.5M8.5 21.5h7"/></svg><span>تسميع</span></button>
+    <button class="tab" role="tab" id="tabA" aria-selected="false" data-tab="a"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/><path d="M17 3.5v3M15.5 5h3"/></svg><span>أذكار</span></button>
+    <button class="tab" role="tab" id="tabP" aria-selected="false" data-tab="p"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M8 14l2.5 2.5L16 12"/></svg><span>الورد</span></button>
   </div>
 
   <section class="card session">
@@ -385,11 +437,10 @@ textarea{width:100%;font:inherit;font-size:.85rem;padding:10px;border-radius:12p
   </section>
 
   <section id="paneA" class="stack" hidden>
+    <div class="adk-hero" id="adkHero"></div>
     <div class="card stack">
-      <div class="seg" role="group" aria-label="القارئ">
-        <button class="segb" data-v="alafasy" aria-pressed="true">مشاري العفاسي</button>
-        <button class="segb" data-v="sobhy" aria-pressed="false">إسلام صبحي</button>
-      </div>
+      <div class="vlabel">اختار الصوت</div>
+      <div class="vpick" id="adkVoices" role="group" aria-label="القارئ"></div>
       <div class="small" id="adkNote"></div>
     </div>
     <div id="adkList" class="stack"></div>
@@ -437,7 +488,7 @@ textarea{width:100%;font:inherit;font-size:.85rem;padding:10px;border-radius:12p
     </div>
   </section>
 
-  <div class="foot">النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التفسير الميسر من مجمع الملك فهد لطباعة المصحف الشريف. أسباب النزول (الصحيح منها) من كتاب «صحيح أسباب النزول» لإبراهيم العلي، عبر مجموعة بيانات مفتوحة. أذكار العفاسي من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس، وتقدر تاخد منها نسخة من تبويب «الورد».</div>
+  <div class="foot"><details><summary><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg> المصادر وحفظ البيانات</summary><p>النص بالرسم العثماني من alquran.cloud. أصوات العفاسي والحصري والمنشاوي من cdn.islamic.network، وصوت إسلام صبحي من way2quran.com. نموذج التعرف على التلاوة من Tarteel AI عبر Hugging Face، وبيشتغل على الجهاز نفسه. التفسير الميسر من مجمع الملك فهد لطباعة المصحف الشريف. أسباب النزول (الصحيح منها) من كتاب «صحيح أسباب النزول» لإبراهيم العلي، عبر مجموعة بيانات مفتوحة. تسجيلات الأذكار (العفاسي، محمد جبريل، فارس عباد، والنسخة المختصرة) من archive.org (TvQuran). التقدم والأذكار المحفوظة بتتحفظ على الموبايل ده بس، وتقدر تاخد منها نسخة من تبويب «الورد».</p></details></div>
 </div>
 
 <div id="carOverlay" class="car-overlay" hidden>
@@ -471,11 +522,11 @@ textarea{width:100%;font:inherit;font-size:.85rem;padding:10px;border-radius:12p
     <div class="status" id="status">اختار المقطع واضغط تشغيل</div>
     <input type="range" id="seek" min="0" max="1000" value="0" aria-label="موضع التشغيل" hidden>
     <div class="ctrl">
-      <button class="btn ico" id="bStop" aria-label="إيقاف">⏹</button>
-      <button class="btn pri" id="bPlay">▶ تشغيل</button>
-      <button class="btn ico" id="bPause" aria-label="إيقاف مؤقت">⏸</button>
-      <button class="btn side" id="bNext">⏭ التالية</button>
-      <button class="btn ico" id="bCarBar" aria-label="وضع القيادة">🚗</button>
+      <button class="btn ico" id="bStop" aria-label="إيقاف"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg></button>
+      <button class="btn pri" id="bPlay"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 12L7 18.5v-13z" fill="currentColor"/></svg><span>تشغيل</span></button>
+      <button class="btn ico" id="bPause" aria-label="إيقاف مؤقت"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="3.5" height="14" rx="1.2" fill="currentColor"/></svg></button>
+      <button class="btn side" id="bNext"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6.5v11l7.5-5.5zM14 6.5v11l7.5-5.5z" fill="currentColor" stroke-width="1.5"/></svg><span>التالية</span></button>
+      <button class="btn ico" id="bCarBar" aria-label="وضع القيادة"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 17h14M3.5 17v-4l2-5.5A2 2 0 017.4 6h9.2a2 2 0 011.9 1.5l2 5.5v4"/><path d="M3.5 13h17"/><circle cx="7.5" cy="17" r="2" fill="currentColor"/><circle cx="16.5" cy="17" r="2" fill="currentColor"/></svg></button>
     </div>
   </div>
 </div>
@@ -486,6 +537,7 @@ var SURAHS=[[78,'النبأ',40],[79,'النازعات',46],[80,'عبس',42],[81
 var TOTAL=SURAHS.reduce(function(s,x){return s+x[2]},0);
 
 function $(s){return document.querySelector(s)}
+var IC={next:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6.5v11l7.5-5.5zM14 6.5v11l7.5-5.5z" fill="currentColor" stroke-width="1.5"/></svg>',fwd:'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 11-2.3-5.6M20 4v4.5h-4.5"/></svg>'};
 function ar(n){return String(n).replace(/\d/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d]})}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 /* per-ayah reciters on cdn.islamic.network (all at 128 kbps); Islam Sobhi has whole surahs only, so single ayahs fall back to Alafasy */
@@ -1659,7 +1711,7 @@ function updateVoiceUI(){
   $('#rep').disabled=s;$('#echo').disabled=s;
   $('#seek').hidden=!s;
   $('#linkLbl').textContent=s?'عدد مرات تشغيل السورة':'ربط المقطع بعد التكرار';
-  $('#bNext').textContent=s?'⏩ ١٥ ث':'⏭ التالية';
+  $('#bNext').innerHTML=s?IC.fwd+'<span>١٥ ث</span>':IC.next+'<span>التالية</span>';
   moreSum();
 }
 SETTINGS.forEach(function(id){
@@ -1834,11 +1886,39 @@ $('#bTheme').addEventListener('click',function(){
 /* Alafasy files: archive.org item TvQuran.com__Athkar (athkar_03 = morning, athkar_04 = evening).
    Islam Sobhi has no public mp3 of the adhkar, so the user adds the file from the phone once. */
 var ADK={
-  alafasy:{name:'مشاري العفاسي',
+  alafasy:{name:'مشاري العفاسي',ini:'ع',
     sabah:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_03.mp3',mb:10,len:1266},
     masa:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_04.mp3',mb:10,len:1258}},
-  sobhy:{name:'إسلام صبحي',sabah:{},masa:{}}
+  jebril:{name:'محمد جبريل',ini:'ج',
+    sabah:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_07.mp3',mb:10,len:1309},
+    masa:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_08.mp3',mb:11,len:1348}},
+  fares:{name:'فارس عباد',ini:'ف',
+    sabah:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_05.mp3',mb:10,len:1234},
+    masa:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_06.mp3',mb:10,len:1229}},
+  short:{name:'نسخة مختصرة',ini:'⏱',
+    sabah:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_09.mp3',mb:2,len:224},
+    masa:{url:'https://archive.org/download/TvQuran.com__Athkar/TvQuran.com_athkar_10.mp3',mb:2,len:235}},
+  sobhy:{name:'إسلام صبحي',ini:'ص',sub:'من ملف عندك',file:true,sabah:{},masa:{}}
 };
+/* reciter picker: built once from ADK */
+function adkVoices(){
+  var h='';
+  for(var v in ADK){
+    var R=ADK[v],mins=R.sabah.len?Math.round(R.sabah.len/60):0,
+      sub=R.sub||(mins?'حوالي '+ar(mins)+(mins<=10?' دقايق':' دقيقة'):''),
+      saved=(adkSt[adkKey(v,'sabah')]||{}).have||(adkSt[adkKey(v,'masa')]||{}).have;
+    h+='<button type="button" class="vbtn'+(R.file?' file':'')+'" data-v="'+v+'" aria-pressed="'+(v===adkV)+'">'
+      +'<span class="av">'+esc(R.ini||R.name.charAt(0))+'</span>'
+      +'<span class="vt"><b>'+esc(R.name)+'</b><small>'+esc(sub)+'</small></span>'
+      +(saved?'<span class="ok-dot" title="محفوظ على الموبايل"></span>':'')+'</button>';
+  }
+  $('#adkVoices').innerHTML=h;
+}
+function adkHero(){
+  var m=morningNow(),el=$('#adkHero');
+  el.className='adk-hero'+(m?'':' night');
+  el.innerHTML='<b>'+(m?'وقت أذكار الصباح':'وقت أذكار المساء')+'</b><span>'+(m?'من بعد الفجر لحد الضهر':'من بعد العصر لحد ما تنام')+'</span><span class="big" aria-hidden="true">'+(m?'☀️':'🌙')+'</span>';
+}
 var ADK_KIND={sabah:{t:'أذكار الصباح',ic:'☀️',when:'بعد صلاة الفجر'},masa:{t:'أذكار المساء',ic:'🌙',when:'بعد صلاة العصر'}};
 var adkV='alafasy',adkSt={},adkCur=null,adkUrl=null,adkPick=null,adkAudio=new Audio();
 adkAudio.preload='metadata';
@@ -1870,8 +1950,9 @@ function mmss(x){if(!isFinite(x)||x<0)x=0;x=Math.floor(x);return ar(Math.floor(x
 
 function adkInit(){
   var u=loadUI();if(ADK[u.adkV])adkV=u.adkV;
-  document.querySelectorAll('.segb').forEach(function(b){
-    b.addEventListener('click',function(){adkV=b.getAttribute('data-v');saveUI({adkV:adkV});renderAdk()});
+  $('#adkVoices').addEventListener('click',function(e){
+    var b=e.target.closest('.vbtn');if(!b)return;
+    adkV=b.getAttribute('data-v');saveUI({adkV:adkV});renderAdk();
   });
   $('#adkList').addEventListener('click',adkClick);
   $('#adkList').addEventListener('input',function(e){
@@ -1983,7 +2064,8 @@ function adkClick(e){
 }
 function renderAdk(){
   if($('#paneA').hidden)return;
-  document.querySelectorAll('.segb').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-v')===adkV)});
+  adkHero();adkVoices();
+
   var R=ADK[adkV],order=morningNow()?['sabah','masa']:['masa','sabah'],h='';
   $('#adkNote').textContent=adkV==='sobhy'
     ?'أذكار إسلام صبحي مش متاحة كملف عام على النت. لو عندك الملف على الموبايل، اختاره مرة واحدة وهيتحفظ هنا ويشتغل من غير نت.'
@@ -2015,6 +2097,13 @@ function renderAdk(){
   });
   $('#adkList').innerHTML=h;
 }
+
+/* greeting + Hijri date in the header */
+(function(){
+  var h=new Date().getHours(),g=(h>=4&&h<12)?'صباح الخير':'مساء الخير',d='';
+  try{d=new Intl.DateTimeFormat('ar-EG-u-ca-islamic-umalqura',{day:'numeric',month:'long',year:'numeric'}).format(new Date())}catch(e){}
+  $('#greet').innerHTML=esc(g)+(d?' <i>· '+esc(d)+'</i>':'');
+})();
 
 /* ---------- Start ---------- */
 var ui=loadUI();
